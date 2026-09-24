@@ -1,8 +1,20 @@
 {
   "source_id": "S16",
   "raw_file": "myki _ Your ticket to travel _ Public transport in Victoria - Transport Victoria.pdf",
-  "section_count": 5,
-  "total_characters": 2382,
+  "section_count": 7,
+  "total_characters": 2129,
+  "il_ratio": 0.401,
+  "min_words_per_section": 40,
+  "max_words_per_section": 73,
+  "headings": [
+    "Get started with myki",
+    "Android",
+    "How it works",
+    "Manage your myki",
+    "Full Fare myki",
+    "Helpful information",
+    "Save money with myki"
+  ],
   "url": "https://transport.vic.gov.au/tickets-and-payments/myki",
   "publisher": "Transport Victoria",
   "title": "myki | Your ticket to travel | Public transport in Victoria - Transport Victoria",

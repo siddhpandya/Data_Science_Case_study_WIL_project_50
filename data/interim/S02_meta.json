@@ -1,8 +1,18 @@
 {
   "source_id": "S02",
   "raw_file": "Bulk billing - Medicare - Services Australia.pdf",
-  "section_count": 4,
-  "total_characters": 3034,
+  "section_count": 5,
+  "total_characters": 2645,
+  "il_ratio": 0.464,
+  "min_words_per_section": 44,
+  "max_words_per_section": 196,
+  "headings": [
+    "Bulk billing - Medicare - Services Australia",
+    "What bulk billing is",
+    "What bulk billing covers",
+    "Example",
+    "How to find a bulk billing GP"
+  ],
   "url": "https://www.servicesaustralia.gov.au/bulk-billing?context=60092",
   "publisher": "Services Australia",
   "title": "Bulk billing - Medicare - Services Australia",

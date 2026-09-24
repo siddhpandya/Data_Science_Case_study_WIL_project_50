@@ -1,27 +1,37 @@
 [
   {
-    "heading": "Page 1",
+    "heading": "Get started with myki",
     "level": 1,
-    "text": "Get started with myki Your ticket to travel on trains, trams and buses in Melbourne and most of regional Victoria. Buy a myki Top up online Download the PTV App Buy a myki  Physical myki Buy a physical myki and top up to travel if you don't want to use a bank card. Card cost: $6 full fare | $3 concession | $5 youth. You'll need to top up separately before you can travel. Learn about Mobile myki  Mobile myki for"
+    "text": "Your ticket to travel on trains, trams and buses in Melbourne and most of regional Victoria. Buy a myki Top up online Download the PTV App\n\n### Physical myki\nBuy a physical myki and top up to travel if you don't want to use a bank card. Card cost: $6 full fare | $3 concession | $5 youth. You'll need to top up separately before you can travel."
   },
   {
     "heading": "Android",
+    "level": 3,
+    "text": "Set up myki in your Google Wallet on your Android phone. You never need to buy a physical myki card. Just tap your phone to pay for your trip. Free to set up. Feedback\n\n### How to use myki\nTop up your myki Money using a range of physical and online options, from the PTV"
+  },
+  {
+    "heading": "How it works",
+    "level": 3,
+    "text": "Tap on every time to ensure you get the lowest fare.\n\n### Where you can use it\nAvailable on trains, trams and buses, and some V/Line trains across metro and some regional areas. myki is progressively rolling out on regional lines."
+  },
+  {
+    "heading": "Manage your myki",
     "level": 2,
-    "text": "Set up myki in your Google Wallet on your Android phone. You never need to buy a physical myki card. Just tap your phone to pay for your trip. Free to set up.\n\n### Page 2\nTopping up  How to use myki Top up your myki Money using a range of physical and online options, from the PTV Tapping on and off  How it works Tap on every time to ensure you get the lowest fare. Check your line’s rollout status  Where you can use it Available on trains, trams and buses, and some V/Line trains across metro and some regional areas. myki is progressively rolling out on regional lines. Create a myki account  Manage your myki Register for a myki account to protect your balance and manage your travel in one place: manage up to 10 mykis in one account set up Auto Top Up so you never run out of myki money. To create an account, register your first myki."
+    "text": "Register for a myki account to protect your balance and manage your travel in one place: manage up to 10 mykis in one account set up Auto Top Up so you never run out of myki money. To create an account, register your first myki. Feedback"
   },
   {
-    "heading": "Page 3",
-    "level": 1,
-    "text": "View free travel and other ticket types  Pay the right price Full Fare myki Full fare pricing for standard travel on trains, trams and buses.\n\n### Youth\nUnder-18s travel free with a Youth myki; 18-year- olds get half-price fares with ..."
+    "heading": "Full Fare myki",
+    "level": 3,
+    "text": "Full fare pricing for standard travel on trains, trams and buses.\n\n### Youth\nUnder-18s travel free with a Youth myki; 18-year- olds get half-price fares with ...\n\n### Concession\n50% off for students, pensioners, seniors, disability support, healthcare card h..."
   },
   {
-    "heading": "Concession",
+    "heading": "Helpful information",
     "level": 2,
-    "text": "50% off for students, pensioners, seniors, disability support, healthcare card h... Helpful information Helping you navigate public transport in Victoria. Find a myki outlet near you Find a retailer, station or machine to buy a myki or top up. Find a myki outlet near you. Replacements and refunds You can replace a myki card, paper ticket or student ID. Use an online form to refund a myki card, paper ticket or student ID. Save money with myki   "
+    "text": "Helping you navigate public transport in Victoria.\n\n### Find a myki outlet near you\nFind a retailer, station or machine to buy a myki or top up. Find a myki outlet near you.\n\n### Replacements and refunds\nYou can replace a myki card, paper ticket or student ID. Use an online form to refund a myki card, paper ticket or student ID."
   },
   {
-    "heading": "Page 4",
-    "level": 1,
-    "text": "There are multiple ways to save money with myki: Get a myki Pass for unlimited travel over consecutive days Access discounted 365-day passes through myki Commuter Club if your workplace is eligible Explore other ways to get cheaper travel. myki feedback Visit our myki feedback page to tell us about your experiences using the myki ticketing system.  Quick links How to pay for public transport Contactless payments V/Line tickets"
+    "heading": "Save money with myki",
+    "level": 3,
+    "text": "Feedback There are multiple ways to save money with myki: Get a myki Pass for unlimited travel over consecutive days Access discounted 365-day passes through myki Commuter Club if your workplace is eligible Explore other ways to get cheaper travel.\n\n### myki feedback\nVisit our myki feedback page to tell us about your experiences using the myki ticketing system.\n\n### Quick links\nHow to pay for public transport Contactless payments V/Line tickets Feedback"
   }
 ]

@@ -1,8 +1,21 @@
 {
   "source_id": "S13",
   "raw_file": "Tickets and payments - Transport Victoria.pdf",
-  "section_count": 5,
-  "total_characters": 3021,
+  "section_count": 8,
+  "total_characters": 2647,
+  "il_ratio": 0.401,
+  "min_words_per_section": 37,
+  "max_words_per_section": 109,
+  "headings": [
+    "Tickets and payments",
+    "Contactless",
+    "V/Line tickets",
+    "Half price rides!",
+    "Find out more about fares east",
+    "Full Fare myki",
+    "Cheaper travel before 7am - Early bird",
+    "Cheaper travel after 6pm"
+  ],
   "url": "https://transport.vic.gov.au/tickets-and-payments",
   "publisher": "Transport Victoria",
   "title": "Tickets and payments - Transport Victoria",

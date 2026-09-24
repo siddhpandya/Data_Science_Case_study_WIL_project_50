@@ -1,27 +1,42 @@
 [
   {
-    "heading": "Page 1",
+    "heading": "Tickets and payments",
     "level": 1,
-    "text": "Tickets and payments Your ticketing and payment options for travelling on public transport across\n\n### Victoria\nmyki Pay using a physical myki card or via Mobile myki (Android only) if you don't want to use your bank card. Support: Full fare and concession"
+    "text": "Your ticketing and payment options for travelling on public transport across Victoria\n\n### myki\nPay using a physical myki card or via Mobile myki (Android only) if you don't want to use your bank card. Support: Full fare and concession Modes: Metropolitan trains, trams and buses V/Line trains (some lines) Buses in inner regional areas"
   },
   {
-    "heading": "Modes:",
-    "level": 2,
-    "text": "Metropolitan trains, trams and buses V/Line trains (some lines) Buses in inner regional areas\n\n### Contactless\nPay as you go by tapping your Mastercard or Visa, smartphone or smartwatch. Support: Full fare only\n\n### Modes:\nMetropolitan trains, trams and buses V/Line trains (some lines) Buses in inner regional areas Find out more about V/Line tickets  V/Line tickets Buy a paper ticket or eTicket for V/Line coaches, or to reserve a seat on some V/Line trains. Support: Full fare and concession Required for: Seat reservations on some V/Line trains V/Line coaches"
+    "heading": "Contactless",
+    "level": 3,
+    "text": "Pay as you go by tapping your Mastercard or Visa, smartphone or smartwatch. Support: Full fare only Modes: Metropolitan trains, trams and buses V/Line trains (some lines) Buses in inner regional areas Find out more about V/Line tickets"
   },
   {
-    "heading": "Page 2",
-    "level": 1,
-    "text": "Find out more about myki  Find out more about contactless  Half price rides! Public transport is half price across the state for everyone, every day until 1 ... Read more about half price rides  Daily fare cap Fare cap is the maximum amount you will pay in a day no matter how long you trave Find out more about fares  Public transport is half price until 1 January 2027, and the prices below reflect this discount. Once you hit the cap, travel is free for the rest of the day. Weekday cap: $5.70 full fare | $2.85 concession Weekend cap: $4.00 full fare | $2.00 concession | Seniors free Until you reach the cap, how much you pay depends on how far you travel. Pay the right price"
+    "heading": "V/Line tickets",
+    "level": 3,
+    "text": "Buy a paper ticket or eTicket for V/Line coaches, or to reserve a seat on some V/Line trains. Support: Full fare and concession Required for: Seat reservations on some V/Line trains V/Line coaches Feedback Find out more about myki Find out more about contactless"
   },
   {
-    "heading": "Page 3",
-    "level": 1,
-    "text": "Full Fare myki Full fare pricing for standard travel on trains, trams and buses.\n\n### Youth\nUnder-18s travel free with a Youth myki; 18-year- olds get half-price fares with ...\n\n### Concession\n50% off for students, pensioners, seniors, disability support, healthcare card h... View cheaper travel options  More ways of saving money Explore your options for free tram travel, off-peak fares, discoun Cheaper travel before 7am - Early bird Your metropolitan train journey is free if you tap on and off before 7.15am on weekdays. You get the free early bird fare when you: travel on a metropolitan train, or a V/Line service between Pakenham or Sunbury and Melbourne keep a positive account balance tap on and off within 2 hours, before 7.15am on a weekday. To make sure you get the early bird fare, use train services that arrive at your destination by 7am. Cheaper travel after 6pm If you tap on after 6pm, you can travel until 3am the next day. This gives you up to 9 hours of travel for the price of 2 hours.  "
+    "heading": "Half price rides!",
+    "level": 3,
+    "text": "Public transport is half price across the state for everyone, every day until 1 ...\n\n### Daily fare cap\nFare cap is the maximum amount you will pay in a day no matter how long you trave"
   },
   {
-    "heading": "Page 4",
-    "level": 1,
-    "text": "Weekend and public holiday fares On weekends and public holidays, your daily fare is capped at $4.00 for full fare, $2.00 for concession, and free for Seniors myki holders. You may be eligible for free weekend travel if you have certain concessions or a free travel pass.  New ways to tap and go rolling out on lo... From 16 August, myki and contactless payment options will be progressively avail... Learn more about tap and go on V/Line trains  Quick links myki Contactless payments V/Line tickets"
+    "heading": "Find out more about fares east",
+    "level": 3,
+    "text": "Public transport is half price until 1 January 2027, and the prices below reflect this discount. Once you hit the cap, travel is free for the rest of the day. Weekday cap: $5.70 full fare | $2.85 concession Weekend cap: $4.00 full fare | $2.00 concession | Seniors free Until you reach the cap, how much you pay depends on how far you travel."
+  },
+  {
+    "heading": "Full Fare myki",
+    "level": 3,
+    "text": "Full fare pricing for standard travel on trains, trams and buses.\n\n### Youth\nUnder-18s travel free with a Youth myki; 18-year- olds get half-price fares with ...\n\n### Concession\n50% off for students, pensioners, seniors, disability support, healthcare card h..."
+  },
+  {
+    "heading": "Cheaper travel before 7am - Early bird",
+    "level": 3,
+    "text": "Your metropolitan train journey is free if you tap on and off before 7.15am on weekdays. You get the free early bird fare when you: travel on a metropolitan train, or a V/Line service between Pakenham or Sunbury and Melbourne keep a positive account balance tap on and off within 2 hours, before 7.15am on a weekday. To make sure you get the early bird fare, use train services that arrive at your destination by 7am."
+  },
+  {
+    "heading": "Cheaper travel after 6pm",
+    "level": 3,
+    "text": "If you tap on after 6pm, you can travel until 3am the next day. This gives you up to 9 hours of travel for the price of 2 hours. Feedback\n\n### Weekend and public holiday fares\nOn weekends and public holidays, your daily fare is capped at $4.00 for full fare, $2.00 for concession, and free for Seniors myki holders. You may be eligible for free weekend travel if you have certain concessions or a free travel pass. New ways to tap and go rolling out on lo... From 16 August, myki and contactless payment options will be progressively avail...\n\n### Quick links\nmyki Contactless payments V/Line tickets Feedback"
   }
 ]

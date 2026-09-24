@@ -1,8 +1,20 @@
 {
   "source_id": "S08",
   "raw_file": "I'm a migrant worker being treated unfairly - Fair Work Ombudsman.pdf",
-  "section_count": 4,
-  "total_characters": 7008,
+  "section_count": 7,
+  "total_characters": 6690,
+  "il_ratio": 0.525,
+  "min_words_per_section": 41,
+  "max_words_per_section": 230,
+  "headings": [
+    "I'm a migrant worker being treated unfairly",
+    "need",
+    "Steps to take",
+    "If you need more support",
+    "problems",
+    "Tools and resources",
+    "Contact us"
+  ],
   "url": "https://www.fairwork.gov.au/workplace-problems/common-workplace-problems/im-a-migrant-worker-being-treated-unfairly",
   "publisher": "Fair Work Ombudsman",
   "title": "I'm a migrant worker being treated unfairly - Fair Work Ombudsman",

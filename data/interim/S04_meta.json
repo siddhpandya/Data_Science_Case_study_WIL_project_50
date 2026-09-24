@@ -2,7 +2,14 @@
   "source_id": "S04",
   "raw_file": "Check visa details and conditions2.pdf",
   "section_count": 2,
-  "total_characters": 1313,
+  "total_characters": 1166,
+  "il_ratio": 0.408,
+  "min_words_per_section": 52,
+  "max_words_per_section": 120,
+  "headings": [
+    "Visa Conditions",
+    "Ask a question"
+  ],
   "url": "https://immi.homeaffairs.gov.au/visas/already-have-a-visa/check-visa-details-and-conditions/conditions-list",
   "publisher": "Department of Home Affairs",
   "title": "Check visa details and conditions",

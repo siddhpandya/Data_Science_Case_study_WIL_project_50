@@ -1,8 +1,21 @@
 {
   "source_id": "S09",
   "raw_file": "I'm not getting pay slips - Fair Work Ombudsman.pdf",
-  "section_count": 4,
-  "total_characters": 6160,
+  "section_count": 8,
+  "total_characters": 5857,
+  "il_ratio": 0.472,
+  "min_words_per_section": 54,
+  "max_words_per_section": 164,
+  "headings": [
+    "I'm not getting pay slips",
+    "slips",
+    "Tip: Use our Record My Hours app",
+    "Example: Not getting pay slips",
+    "pay slips",
+    "Tip: Help with difficult conversations",
+    "Tools and resources",
+    "Contact us"
+  ],
   "url": "https://www.fairwork.gov.au/workplace-problems/common-workplace-problems/im-not-getting-pay-slips",
   "publisher": "Fair Work Ombudsman",
   "title": "I'm not getting pay slips - Fair Work Ombudsman",

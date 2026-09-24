@@ -1,8 +1,14 @@
 {
   "source_id": "S07",
   "raw_file": "How your Medicare card and account work - Medicare - Services Australia.pdf",
-  "section_count": 2,
-  "total_characters": 1421,
+  "section_count": 1,
+  "total_characters": 1246,
+  "il_ratio": 0.371,
+  "min_words_per_section": 142,
+  "max_words_per_section": 142,
+  "headings": [
+    "How your Medicare card and account work - Medicare - Services Australia"
+  ],
   "url": "https://www.servicesaustralia.gov.au/how-your-medicare-card-and-account-work?context=60092",
   "publisher": "Services Australia",
   "title": "How your Medicare card and account work - Medicare - Services Australia",

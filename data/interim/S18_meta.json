@@ -3,6 +3,15 @@
   "raw_file": "home_affairs_student_visa_work_hours_20220607_superseded.html",
   "section_count": 4,
   "total_characters": 3514,
+  "il_ratio": 0.409,
+  "min_words_per_section": 113,
+  "max_words_per_section": 187,
+  "headings": [
+    "Temporary relaxation of working hours for student visa holders",
+    "Information for students",
+    "Information for employers",
+    "Flexible arrangements regarding start dates due to COVID-19"
+  ],
   "url": "http://web.archive.org/web/20220607122248/https://immi.homeaffairs.gov.au/visas/getting-a-visa/visa-listing/student-500/temporary-relaxation-of-working-hours-for-student-visa-holders",
   "publisher": "Department of Home Affairs",
   "title": "Temporary relaxation of working hours for student visa holders (snapshot 2022-06-07)",

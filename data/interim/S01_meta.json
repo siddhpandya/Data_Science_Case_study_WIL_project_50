@@ -1,8 +1,18 @@
 {
   "source_id": "S01",
   "raw_file": "Applying for an ABN _ Australian Business Register.pdf",
-  "section_count": 3,
-  "total_characters": 3306,
+  "section_count": 5,
+  "total_characters": 3115,
+  "il_ratio": 0.391,
+  "min_words_per_section": 53,
+  "max_words_per_section": 157,
+  "headings": [
+    "Applying for an ABN _ Australian Business Register",
+    "Requesting non-disclosure of details",
+    "Processing your application",
+    "A successful application",
+    "An unsuccessful application"
+  ],
   "url": "https://www.abr.gov.au/business-super-funds-charities/applying-abn",
   "publisher": "Australian Business Register",
   "title": "Applying for an ABN | Australian Business Register",
