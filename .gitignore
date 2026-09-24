@@ -1,0 +1,31 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+env/
+
+# Runs and results generated files
+runs/*.txt
+results/*
+!results/.gitkeep
+!results/figures/
+!results/figures/.gitkeep
+!results/generations/
+!results/generations/.gitkeep
+
+# Generated cache
+data/embeddings/*.npy
+
+# Environment and IDE
+.env
+.idea/
+.vscode/
+.pytest_cache/
+
+# Large archive binaries and excluded raw files
+*.zip
+Corpus.zip
+data/raw_excluded/
+

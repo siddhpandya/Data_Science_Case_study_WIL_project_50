@@ -1,0 +1,4 @@
+topic_id,topic,question_id,question,question_type,variant_of,register,currency_sensitive
+T01,student_visa_work_hours,T01Q01,What are the work limitations under visa condition 8105?,known,,policy,true
+T01,student_visa_work_hours,T01Q02,how many hours can i work while studying,known,T01Q01,student,true
+T02,centrelink_youth_allowance,T02Q01,Can international students receive Centrelink Youth Allowance payments?,out_of_kb,,,false

@@ -1,0 +1,32 @@
+# SettleIN RAG Framework Dependencies
+# Target Python: 3.11 / 3.12
+
+# Retrieval & IR
+rank-bm25==0.2.2
+sentence-transformers==3.4.1
+ranx==0.3.20
+torch>=2.2.0
+numpy>=1.26.0,<3.0.0
+
+# LLM & Generation
+ollama==0.6.1
+
+# Web & Extraction
+beautifulsoup4==4.13.3
+pypdf==6.18.0
+requests==2.32.5
+
+# Data & Config
+pandas==2.2.3
+PyYAML==6.0.3
+
+# Evaluation & Statistics
+scikit-learn==1.6.1
+scipy==1.15.3
+statsmodels==0.14.4
+nltk==3.9.2
+matplotlib==3.10.6
+
+# Application & Testing
+streamlit==1.51.0
+pytest==8.3.4
