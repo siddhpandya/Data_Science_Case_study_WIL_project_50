@@ -23,7 +23,7 @@ retrieval:
   score_threshold: null    # set in Phase 4
 generation:
   provider: ollama
-  model: llama3.2:3b
+  model: llama3.2:latest
   temperature: 0.0
   num_predict: 256
   prompt_variant: settlein  # walert | settlein | closed_book
