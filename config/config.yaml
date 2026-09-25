@@ -25,7 +25,7 @@ generation:
   provider: ollama
   model: llama3.2:latest
   temperature: 0.0
-  num_predict: 256
+  num_predict: 512
   prompt_variant: settlein  # walert | settlein | closed_book
 experiments:
   include_no_retrieval: true  # closed-book baseline arm (no retrieved passages)

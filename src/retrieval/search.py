@@ -154,6 +154,16 @@ class DenseIndex:
 
 # ── Unified Search Interface ────────────────────────────────────────────────
 
+# Thresholds for adaptive filtering
+DENSE_MIN_SCORE = 0.55       # Minimum cosine similarity to keep
+DENSE_DROP_RATIO = 0.92      # Stop if score < 92% of previous (sharp drop = irrelevant)
+DENSE_GAP_THRESHOLD = 0.04   # Stop if score drops >0.04 from previous passage
+BM25_RELATIVE_THRESHOLD = 0.40  # Keep passages scoring >= 40% of top score
+MAX_CANDIDATES = 20          # Fetch this many, then filter
+MIN_PASSAGES = 1             # Always return at least this many
+MAX_PASSAGES = 15            # Never return more than this
+
+
 class SearchEngine:
     """Unified search engine supporting BM25 and dense retrieval."""
 
@@ -177,11 +187,73 @@ class SearchEngine:
             model_name=dense_cfg.get("model", "BAAI/bge-small-en-v1.5"),
         )
 
-    def search(self, query: str, method: str = "bm25", top_k: int = 5) -> list[tuple[dict, float]]:
-        """Search using specified method."""
+    def search(self, query: str, method: str = "dense", top_k: int = 5) -> list[tuple[dict, float]]:
+        """Search using specified method with fixed top_k (for evaluation)."""
         if method == "bm25":
             return self.bm25.search(query, top_k)
         elif method == "dense":
             return self.dense.search(query, top_k)
         else:
             raise ValueError(f"Unknown retrieval method: {method}")
+
+    def adaptive_search(self, query: str, method: str = "dense") -> list[tuple[dict, float]]:
+        """Adaptive search: fetch many candidates, keep only relevant ones.
+
+        For dense retrieval:
+          - Fetches MAX_CANDIDATES passages
+          - Keeps those with cosine similarity >= DENSE_MIN_SCORE
+          - Also applies a drop-off filter: if a passage scores <70% of the
+            previous one, stop (detects the "relevance cliff")
+
+        For BM25:
+          - Fetches MAX_CANDIDATES passages
+          - Keeps those scoring >= BM25_RELATIVE_THRESHOLD * top_score
+
+        Always returns between MIN_PASSAGES and MAX_PASSAGES results.
+        """
+        if method == "bm25":
+            candidates = self.bm25.search(query, MAX_CANDIDATES)
+        elif method == "dense":
+            candidates = self.dense.search(query, MAX_CANDIDATES)
+        else:
+            raise ValueError(f"Unknown retrieval method: {method}")
+
+        if not candidates:
+            return []
+
+        top_score = candidates[0][1]
+        if top_score <= 0:
+            return candidates[:MIN_PASSAGES]
+
+        filtered = []
+        for i, (passage, score) in enumerate(candidates):
+            if i >= MAX_PASSAGES:
+                break
+
+            # Always include at least MIN_PASSAGES
+            if i < MIN_PASSAGES:
+                filtered.append((passage, score))
+                continue
+
+            if method == "dense":
+                # Absolute threshold: cosine sim must be meaningful
+                if score < DENSE_MIN_SCORE:
+                    break
+                # Drop-off filter: stop if score drops sharply from previous
+                prev_score = candidates[i - 1][1]
+                if prev_score > 0:
+                    # Ratio check: score must be >= 92% of previous
+                    if score / prev_score < DENSE_DROP_RATIO:
+                        break
+                    # Gap check: if absolute gap > threshold, stop
+                    if prev_score - score > DENSE_GAP_THRESHOLD:
+                        break
+            else:
+                # BM25: relative threshold
+                if score < BM25_RELATIVE_THRESHOLD * top_score:
+                    break
+
+            filtered.append((passage, score))
+
+        return filtered
+

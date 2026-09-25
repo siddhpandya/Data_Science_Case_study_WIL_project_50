@@ -72,12 +72,12 @@ def render_sidebar(passages):
 
         retrieval_method = st.selectbox(
             "Retrieval Method",
-            ["bm25", "dense"],
+            ["dense", "bm25"],
             index=0,
-            help="BM25 = keyword matching, Dense = semantic similarity",
+            help="Dense = semantic similarity (recommended), BM25 = keyword matching",
         )
 
-        top_k = st.slider("Passages to retrieve", 1, 10, 3)
+        st.caption("📐 Passage count is **adaptive** — automatically picks relevant passages.")
 
         prompt_variant = st.selectbox(
             "Prompt Style",
@@ -111,7 +111,7 @@ def render_sidebar(passages):
         st.divider()
         st.caption("Built by **Group 50** · RMIT COSC2669 WIL Project")
 
-        return retrieval_method, top_k, prompt_variant
+        return retrieval_method, prompt_variant
 
 
 # ── Evidence Panel ───────────────────────────────────────────────────────────
@@ -172,7 +172,7 @@ def main():
     )
 
     # Sidebar
-    retrieval_method, top_k, prompt_variant = render_sidebar(passages)
+    retrieval_method, prompt_variant = render_sidebar(passages)
 
     # Layout: Chat + Evidence
     chat_col, evidence_col = st.columns([3, 2])
@@ -189,13 +189,13 @@ def main():
             with st.chat_message("user"):
                 st.markdown(question)
 
-            # Retrieve
+            # Retrieve (adaptive: auto-selects how many passages are relevant)
             with st.spinner("🔍 Searching…"):
                 if prompt_variant == "closed_book":
                     results = None
                     st.session_state.evidence = []
                 else:
-                    results = engine.search(question, method=retrieval_method, top_k=top_k)
+                    results = engine.adaptive_search(question, method=retrieval_method)
                     st.session_state.evidence = results
 
             # Generate
