@@ -123,3 +123,67 @@ each passage as `[ID] {title} > {heading}: {contents}`. This was run on the 6
 currency questions only (T01Q01, T02Q01, T03Q01, BM25 and dense, k=5,
 include_superseded=true) to check whether contextual headers help the model
 avoid stating the outdated 40-hour work limit.
+
+## Embedding Model Comparison
+
+Two dense embedding models compared on original passage text (no contextual
+headers, no sub-chunking). Evaluated on 35 answerable questions (29 known +
+6 inferred). Run file: `src/experiments/embedding_comparison.py`.
+
+### Models
+
+| Model | ID | Dim | Context | Prefix (query) | Prefix (doc) |
+|-------|:--:|:---:|:-------:|----------------|--------------|
+| bge-small-en-v1.5 | sentence-transformers | 384 | 512 | (none) | (none) |
+| nomic-embed-text | 0a109f422b47 (Ollama) | 768 | 2048 | `search_query: ` | `search_document: ` |
+
+mxbai-embed-large (468836162de7, 1024-dim, 512-token context) was dropped:
+Ollama's `/api/embed` endpoint returned "the input length exceeds the context
+length" for all passages despite `truncate=true` and passages well within 512
+tokens. Standalone CLI calls worked; the failure is specific to the Python
+`requests` client and appears to be an Ollama bug with model context
+initialisation.
+
+### Truncation
+
+- **bge-small**: 7 passages exceed 512 tokens (S03_002: 547, S03_003: 977,
+  S05_012: 643, S06_010: 591, S08_006: 669, S09_007: 544, S10_011: 553)
+- **nomic**: no passages exceed 2048 tokens
+
+### Results (combined, n=35)
+
+| Model | nDCG@1 | nDCG@3 | nDCG@5 | Recall@5 | Hit@5 | MRR |
+|-------|:------:|:------:|:------:|:--------:|:-----:|:---:|
+| bge_small | 0.5429 | 0.6371 | 0.6952 | 0.7767 | 0.9429 | 0.7714 |
+| nomic | 0.7000 | 0.6577 | 0.7060 | 0.7467 | 0.9714 | 0.8357 |
+
+### Tukey HSD (α = 0.01, diff = bge_small − nomic)
+
+| Metric | Diff | p |
+|--------|:----:|:-:|
+| nDCG@5 | −0.0108 | 0.8793 (ns) |
+| Recall@5 | +0.0300 | 0.6831 (ns) |
+| Hit@5 | −0.0286 | 0.5618 (ns) |
+| MRR | −0.0643 | 0.3874 (ns) |
+
+No comparison reaches significance at α = 0.01.
+
+### Diagnostic questions
+
+T11Q02 and T25Q02 scored zero across all 6 retrieval ablation configs (BM25
+and dense × original / ctx / docfirst). nomic-embed-text retrieves at least
+one relevant passage for both: T11Q02 nDCG@5 = 0.2611, T25Q02 nDCG@5 = 0.7602.
+
+### Fairness: nDCG@5 gaps
+
+| Pair | bge_small gap | nomic gap |
+|------|:------------:|:---------:|
+| T04 | 0.0761 | 0.0000 |
+| T11 | 0.6388 | 0.3777 |
+| T18 | 0.0793 | 0.0361 |
+| T25 | 0.9239 | 0.1900 |
+| T30 | 0.0498 | 0.0000 |
+| T39 | 0.0000 | 0.0000 |
+
+Note: 6 pairs is too few for a statistical comparison across models.
+nomic reduces the gap on T11 and T25 (the two hardest fairness pairs).
