@@ -91,9 +91,9 @@ def hit_rate_at_k(ranked_pids: list[str], relevant_pids: set[str], k: int) -> fl
     return 1.0 if set(ranked_pids[:k]) & relevant_pids else 0.0
 
 
-def mrr(ranked_pids: list[str], relevant_pids: set[str]) -> float:
-    """Mean Reciprocal Rank: 1/rank of first relevant doc."""
-    for i, pid in enumerate(ranked_pids):
+def mrr(ranked_pids: list[str], relevant_pids: set[str], k: int = 5) -> float:
+    """MRR@5: 1/rank of first relevant doc within top k, else 0."""
+    for i, pid in enumerate(ranked_pids[:k]):
         if pid in relevant_pids:
             return 1.0 / (i + 1)
     return 0.0

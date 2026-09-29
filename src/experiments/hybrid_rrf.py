@@ -62,8 +62,8 @@ def hit_at_k(retrieved_ids, qrels_for_q, k):
     relevant = {pid for pid, g in qrels_for_q.items() if g > 0}
     return 1.0 if relevant & set(retrieved_ids[:k]) else 0.0
 
-def mrr(retrieved_ids, qrels_for_q):
-    for i, pid in enumerate(retrieved_ids):
+def mrr(retrieved_ids, qrels_for_q, k=5):
+    for i, pid in enumerate(retrieved_ids[:k]):
         if qrels_for_q.get(pid, 0) > 0:
             return 1.0 / (i + 1)
     return 0.0

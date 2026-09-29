@@ -15,14 +15,14 @@ the system facts and decisions for the evaluation pipeline.
 ## Prompt
 
 - **Active variant**: `settlein_v4`
-- **History**: v1 (initial), v2 (adaptive), v3 (passage-level IDs, strict refusal),
+- **History**: v1 (initial), v2 (relevance-check instruction), v3 (passage-level IDs, strict refusal),
   v4 (v3 + inline citation placement rule)
 - **Refusal string**: `I don't have information about that in my sources.`
 - **Citation format**: `[S03_002]` (exact passage ID in square brackets)
 
 ## Retrieval
 
-- **BM25**: rank_bm25 library, default parameters
+- **BM25**: pure-Python implementation (`src/retrieval/search.py`), k1 = 1.2, b = 0.75
 - **Dense**: BAAI/bge-small-en-v1.5 (sentence-transformers), cosine similarity
 - **Top-k**: 5 passages per query
 - **Superseded filter**: sources listed in `data/sources_draft.csv` with
@@ -30,8 +30,10 @@ the system facts and decisions for the evaluation pipeline.
 
 ## Collection
 
-- **File**: `data/collection.jsonl` (107 passages after superseded filter)
-- **Sources**: 18 source documents (S01–S18), S18 superseded
+- **File**: `data/collection.jsonl` — 111 passages total
+- **Sources**: 15 source documents (S01–S10, S13, S15–S18; S11 and S12 excluded,
+  S14 retired). S18 is superseded.
+- **Search index**: 107 passages after excluding S18's 4 superseded passages
 
 ## Test Set
 
@@ -41,6 +43,9 @@ the system facts and decisions for the evaluation pipeline.
   - 3 currency questions
 - **Relevance judgments**: `data/qrels.txt` — 92 rows, TREC format
 - **Gold answers**: `data/gold_answers.csv` — passage_ids column uses semicolons
+- **Provenance**: questions, relevance judgments and gold answers were drafted
+  with an AI assistant from the corpus, then reviewed by the team. A blind
+  relevance double-judging check measures agreement with the answer key.
 
 ## Prompt Development vs Test Set
 
@@ -76,7 +81,7 @@ Every generation records:
 - All generation runs (BM25, Dense, closed-book, closed_book_instructed,
   currency) use `num_predict: 512`.
 
-## Retrieval Ablation
+## Retrieval Ablation (exploratory: run after the main evaluation)
 
 Three methods compared, each with BM25 and dense retrievers (6 configs total).
 Evaluated on 35 answerable questions (29 known + 6 inferred).
@@ -122,9 +127,11 @@ The `settlein_v4_ctx` prompt variant uses the same prompt text as v4 but formats
 each passage as `[ID] {title} > {heading}: {contents}`. This was run on the 6
 currency questions only (T01Q01, T02Q01, T03Q01, BM25 and dense, k=5,
 include_superseded=true) to check whether contextual headers help the model
-avoid stating the outdated 40-hour work limit.
+avoid stating the outdated 40-hour work limit. Result: contextual headers did
+not remove the outdated 40-hour limit, which still appears in 2 of 6 answers
+(BM25 T02Q01, dense T01Q01), and dense T03Q01 refused.
 
-## Embedding Model Comparison
+## Embedding Model Comparison (exploratory: run after the main evaluation)
 
 Two dense embedding models compared on original passage text (no contextual
 headers, no sub-chunking). Evaluated on 35 answerable questions (29 known +
@@ -137,12 +144,9 @@ headers, no sub-chunking). Evaluated on 35 answerable questions (29 known +
 | bge-small-en-v1.5 | sentence-transformers | 384 | 512 | (none) | (none) |
 | nomic-embed-text | 0a109f422b47 (Ollama) | 768 | 2048 | `search_query: ` | `search_document: ` |
 
-mxbai-embed-large (468836162de7, 1024-dim, 512-token context) was dropped:
-Ollama's `/api/embed` endpoint returned "the input length exceeds the context
-length" for all passages despite `truncate=true` and passages well within 512
-tokens. Standalone CLI calls worked; the failure is specific to the Python
-`requests` client and appears to be an Ollama bug with model context
-initialisation.
+mxbai-embed-large (468836162de7, 1024-dim, 512-token context) could not be run
+reliably within our pipeline (the embedding endpoint returned context-length
+errors), so it was excluded.
 
 ### Truncation
 
@@ -152,8 +156,8 @@ initialisation.
 
 ### Results (combined, n=35)
 
-| Model | nDCG@1 | nDCG@3 | nDCG@5 | Recall@5 | Hit@5 | MRR |
-|-------|:------:|:------:|:------:|:--------:|:-----:|:---:|
+| Model | nDCG@1 | nDCG@3 | nDCG@5 | Recall@5 | Hit@5 | MRR@5 |
+|-------|:------:|:------:|:------:|:--------:|:-----:|:-----:|
 | bge_small | 0.5429 | 0.6371 | 0.6952 | 0.7767 | 0.9429 | 0.7714 |
 | nomic | 0.7000 | 0.6577 | 0.7060 | 0.7467 | 0.9714 | 0.8357 |
 
@@ -164,7 +168,7 @@ initialisation.
 | nDCG@5 | −0.0108 | 0.8793 (ns) |
 | Recall@5 | +0.0300 | 0.6831 (ns) |
 | Hit@5 | −0.0286 | 0.5618 (ns) |
-| MRR | −0.0643 | 0.3874 (ns) |
+| MRR@5 | −0.0643 | 0.3874 (ns) |
 
 No comparison reaches significance at α = 0.01.
 
@@ -188,7 +192,7 @@ one relevant passage for both: T11Q02 nDCG@5 = 0.2611, T25Q02 nDCG@5 = 0.7602.
 Note: 6 pairs is too few for a statistical comparison across models.
 nomic reduces the gap on T11 and T25 (the two hardest fairness pairs).
 
-## Hybrid Search: Reciprocal Rank Fusion (exploratory)
+## Hybrid Search: Reciprocal Rank Fusion (exploratory: run after the main evaluation)
 
 Fuses the existing BM25 and dense (bge-small-en-v1.5) rankings using RRF:
 `score(p) = Σ 1/(60 + rank)` over the two full ranked lists (all 107 passages).
@@ -196,11 +200,11 @@ Run file: `src/experiments/hybrid_rrf.py`.
 
 ### Results (combined, n=35)
 
-| Config | nDCG@1 | nDCG@3 | nDCG@5 | Recall@5 | Hit@5 | MRR |
-|--------|:------:|:------:|:------:|:--------:|:-----:|:---:|
-| bm25 | 0.6143 | 0.6408 | 0.6575 | 0.6586 | 0.8571 | 0.7888 |
-| dense | 0.5429 | 0.6371 | 0.6952 | 0.7767 | 0.9429 | 0.7769 |
-| hybrid_rrf | 0.6000 | 0.7021 | 0.7278 | 0.7676 | 0.9429 | 0.8292 |
+| Config | nDCG@1 | nDCG@3 | nDCG@5 | Recall@5 | Hit@5 | MRR@5 |
+|--------|:------:|:------:|:------:|:--------:|:-----:|:-----:|
+| bm25 | 0.6143 | 0.6408 | 0.6575 | 0.6586 | 0.8571 | 0.7738 |
+| dense | 0.5429 | 0.6371 | 0.6952 | 0.7767 | 0.9429 | 0.7714 |
+| hybrid_rrf | 0.6000 | 0.7021 | 0.7278 | 0.7676 | 0.9429 | 0.8238 |
 
 ### Tukey HSD (α = 0.01, diff = group1 − group2)
 
@@ -215,9 +219,9 @@ Run file: `src/experiments/hybrid_rrf.py`.
 | Hit@5 | bm25 − dense | −0.0857 | 0.4121 (ns) |
 | Hit@5 | bm25 − hybrid_rrf | −0.0857 | 0.4121 (ns) |
 | Hit@5 | dense − hybrid_rrf | −0.0000 | 1.0000 (ns) |
-| MRR | bm25 − dense | +0.0120 | 0.9865 (ns) |
-| MRR | bm25 − hybrid_rrf | −0.0404 | 0.8562 (ns) |
-| MRR | dense − hybrid_rrf | −0.0523 | 0.7707 (ns) |
+| MRR@5 | bm25 − dense | +0.0024 | 0.9995 (ns) |
+| MRR@5 | bm25 − hybrid_rrf | −0.0500 | 0.8097 (ns) |
+| MRR@5 | dense − hybrid_rrf | −0.0524 | 0.7932 (ns) |
 
 No comparison reaches significance at α = 0.01.
 
