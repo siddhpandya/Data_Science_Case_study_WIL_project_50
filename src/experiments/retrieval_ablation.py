@@ -602,9 +602,9 @@ def main():
                 gap = abs(policy_r["ndcg5"] - student_r["ndcg5"])
                 print(f"    {tid}: policy={policy_r['ndcg5']:.4f}  student={student_r['ndcg5']:.4f}  gap={gap:.4f}")
 
-    # Tukey HSD
+    # Tukey HSD — diff convention: first-named minus second-named
     print(f"\n{'='*80}")
-    print("TUKEY HSD (alpha = 0.01)")
+    print("TUKEY HSD (alpha = 0.01) — diff = group1 minus group2")
     print(f"{'='*80}")
     try:
         from scipy.stats import f_oneway
@@ -630,8 +630,11 @@ def main():
                     print(f"\n    {metric}:")
                     for row in tukey.summary().data[1:]:
                         g1, g2, meandiff, p_adj, lower, upper, reject = row
+                        # statsmodels reports meandiff as group2 - group1;
+                        # negate to get group1 - group2 (first-named minus second-named)
+                        diff = -meandiff
                         sig = "sig" if reject else "ns"
-                        print(f"      {g1:10s} vs {g2:10s}: diff={meandiff:+.4f}  p={p_adj:.4f}  ({sig})")
+                        print(f"      {g1:10s} − {g2:10s}: diff={diff:+.4f}  p={p_adj:.4f}  ({sig})")
     except ImportError as e:
         print(f"  Could not run Tukey HSD: {e}")
 

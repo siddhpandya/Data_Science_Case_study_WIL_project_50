@@ -110,10 +110,10 @@ Evaluated on 35 answerable questions (29 known + 6 inferred).
 - BM25 stage 1 kept a relevant document: 21/29 known, 6/6 inferred
 - Dense stage 1 kept a relevant document: 28/29 known, 6/6 inferred
 
-### Tukey HSD (α = 0.01)
+### Tukey HSD (α = 0.01, diff = group1 − group2)
 
 No pairwise comparison reached significance at α = 0.01, for either retriever,
-on any metric. Largest effect: BM25 ctx vs docfirst nDCG@5 diff = −0.2024,
+on any metric. Largest effect: BM25 ctx − docfirst nDCG@5 diff = +0.2024,
 p = 0.0518.
 
 ### Generation check: settlein_v4_ctx

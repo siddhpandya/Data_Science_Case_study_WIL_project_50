@@ -141,8 +141,8 @@ T31Q01 Q0 S01_004 5 0.702496 dense_docfirst
 T35Q01 Q0 S16_001 1 0.784075 dense_docfirst
 T35Q01 Q0 S16_002 2 0.732445 dense_docfirst
 T35Q01 Q0 S13_008 3 0.720950 dense_docfirst
-T35Q01 Q0 S13_006 4 0.717820 dense_docfirst
-T35Q01 Q0 S16_005 5 0.717820 dense_docfirst
+T35Q01 Q0 S16_005 4 0.717820 dense_docfirst
+T35Q01 Q0 S13_006 5 0.717820 dense_docfirst
 T36Q01 Q0 S16_003 1 0.769571 dense_docfirst
 T36Q01 Q0 S13_001 2 0.749956 dense_docfirst
 T36Q01 Q0 S16_001 3 0.746822 dense_docfirst
@@ -152,7 +152,7 @@ T37Q01 Q0 S13_004 1 0.765977 dense_docfirst
 T37Q01 Q0 S13_005 2 0.759003 dense_docfirst
 T37Q01 Q0 S16_001 3 0.739489 dense_docfirst
 T37Q01 Q0 S13_002 4 0.729591 dense_docfirst
-T37Q01 Q0 S16_005 5 0.715751 dense_docfirst
+T37Q01 Q0 S13_006 5 0.715751 dense_docfirst
 T38Q01 Q0 S15_003 1 0.802366 dense_docfirst
 T38Q01 Q0 S15_004 2 0.672719 dense_docfirst
 T38Q01 Q0 S03_015 3 0.667927 dense_docfirst
