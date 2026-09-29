@@ -34,6 +34,37 @@ def load_collection() -> list[dict]:
     return passages
 
 
+SOURCES_DRAFT_PATH = REPO_ROOT / "data" / "sources_draft.csv"
+
+
+def load_superseded_sources() -> set[str]:
+    """Load source_ids that are superseded from sources_draft.csv."""
+    import csv
+    superseded = set()
+    if not SOURCES_DRAFT_PATH.exists():
+        return superseded
+    with open(SOURCES_DRAFT_PATH, "r", encoding="utf-8-sig") as f:
+        for row in csv.DictReader(f):
+            if row.get("is_superseded", "").strip().lower() == "true":
+                superseded.add(row["source_id"].strip())
+    return superseded
+
+
+def filter_superseded(passages: list[dict], include_superseded: bool = True) -> list[dict]:
+    """Filter out passages from superseded sources unless include_superseded is True."""
+    if include_superseded:
+        return passages
+    superseded = load_superseded_sources()
+    if not superseded:
+        return passages
+    filtered = [p for p in passages if p.get("source_id", "") not in superseded]
+    removed = len(passages) - len(filtered)
+    if removed > 0:
+        print(f"  Filtered {removed} passages from superseded sources: {superseded}")
+    return filtered
+
+
+
 # ── BM25 Implementation ─────────────────────────────────────────────────────
 
 def _tokenize(text: str) -> list[str]:
@@ -167,12 +198,19 @@ MAX_PASSAGES = 15            # Never return more than this
 class SearchEngine:
     """Unified search engine supporting BM25 and dense retrieval."""
 
-    def __init__(self, passages: list[dict] | None = None):
+    def __init__(self, passages: list[dict] | None = None, include_superseded: bool | None = None):
         if passages is None:
             passages = load_collection()
-        self.passages = passages
 
         cfg = load_config()
+
+        # Determine superseded filtering from config or explicit arg
+        if include_superseded is None:
+            include_superseded = cfg.get("retrieval", {}).get("include_superseded", False)
+
+        passages = filter_superseded(passages, include_superseded=include_superseded)
+        self.passages = passages
+
         bm25_cfg = cfg.get("retrieval", {}).get("bm25", {})
         dense_cfg = cfg.get("retrieval", {}).get("dense", {})
 

@@ -16,7 +16,7 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from src.retrieval.search import SearchEngine, load_collection
-from src.generation.generate import generate_answer, load_config, format_passages
+from src.generation.generate import generate_answer, load_config
 
 # ── Page Config ──────────────────────────────────────────────────────────────
 
@@ -81,9 +81,9 @@ def render_sidebar(passages):
 
         prompt_variant = st.selectbox(
             "Prompt Style",
-            ["settlein", "walert", "closed_book"],
+            ["settlein_v3", "settlein_v1", "walert", "closed_book"],
             index=0,
-            help="settlein: full RAG, walert: minimal RAG, closed_book: no retrieval",
+            help="settlein_v3: passage-level citations, walert: minimal RAG, closed_book: no retrieval",
         )
 
         st.divider()
@@ -200,12 +200,13 @@ def main():
 
             # Generate
             with st.spinner("💭 Generating answer…"):
-                answer = generate_answer(
+                gen_result = generate_answer(
                     question=question,
                     results=results,
                     variant=prompt_variant,
                     config=config,
                 )
+                answer = gen_result["answer"]
 
             st.session_state.messages.append({"role": "assistant", "content": answer})
             with st.chat_message("assistant"):

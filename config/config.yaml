@@ -23,10 +23,12 @@ retrieval:
   score_threshold: null    # set in Phase 4
 generation:
   provider: ollama
-  model: llama3.2:latest
+  model: llama3.2:3b
   temperature: 0.0
   num_predict: 512
-  prompt_variant: settlein  # walert | settlein | closed_book
+  num_ctx: 4096
+  seed: 42
+  prompt_variant: settlein_v4  # settlein_v1 | settlein_v2 | settlein_v3 | settlein_v4 | walert | closed_book
 experiments:
   include_no_retrieval: true  # closed-book baseline arm (no retrieved passages)
   retrievers: [bm25, dense]
