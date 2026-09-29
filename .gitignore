@@ -16,6 +16,7 @@ results/*
 !results/generations/.gitkeep
 !results/coding_sheets/
 !results/coding_sheets/**
+results/coding_sheets/*_key.csv
 !results/*.csv
 !results/*.md
 !results/grid_manifest.json

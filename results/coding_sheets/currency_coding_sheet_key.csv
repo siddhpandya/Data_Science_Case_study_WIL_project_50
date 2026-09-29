@@ -1,7 +1,0 @@
-row_number,question_id,source
-1,T01Q01,bm25_currency
-2,T02Q01,dense_currency
-3,T03Q01,dense_currency
-4,T02Q01,bm25_currency
-5,T01Q01,dense_currency
-6,T03Q01,bm25_currency

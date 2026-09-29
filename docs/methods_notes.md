@@ -23,7 +23,7 @@ the system facts and decisions for the evaluation pipeline.
 ## Retrieval
 
 - **BM25**: rank_bm25 library, default parameters
-- **Dense**: all-MiniLM-L6-v2 (sentence-transformers), cosine similarity
+- **Dense**: BAAI/bge-small-en-v1.5 (sentence-transformers), cosine similarity
 - **Top-k**: 5 passages per query
 - **Superseded filter**: sources listed in `data/sources_draft.csv` with
   `is_superseded=TRUE` are excluded before indexing. Currently: S18.
@@ -76,3 +76,50 @@ Every generation records:
 - All generation runs (BM25, Dense, closed-book, closed_book_instructed,
   currency) use `num_predict: 512`.
 
+## Retrieval Ablation
+
+Three methods compared, each with BM25 and dense retrievers (6 configs total).
+Evaluated on 35 answerable questions (29 known + 6 inferred).
+
+### Original (baseline)
+
+- **BM25 index text**: `contents` field only
+- **Dense embedding text**: `contents` field only
+- No headings or titles included in indexed/embedded text
+
+### Method 1: Contextual Headers
+
+- **Index text**: `{title} > {heading}: {contents}` with `(#)` artefacts
+  removed from headings
+- Passage IDs unchanged; this only changes what text is indexed/embedded
+- Sub-chunking for passages over 512 tokens (bge-small-en-v1.5 tokenizer):
+  max 400 tokens per chunk, 50-token overlap. A passage's score is the best
+  score among its sub-chunks.
+- 8 passages exceeded 512 tokens: S03_002 (557), S03_003 (990), S03_008 (513),
+  S05_012 (659), S06_010 (604), S08_006 (691), S09_007 (563), S10_011 (572)
+- Embeddings cached separately in `data/embeddings/ctx_passage_embeddings.npy`
+
+### Method 2: Document-First (two-stage)
+
+- **Stage 1**: Rank source documents using a profile of title + all passage
+  headings; keep top 3 documents.
+- **Stage 2**: Rank passages only from those 3 documents using original passage
+  text (`contents` field), return top 5.
+- Uses original passage text in stage 2, not contextual headers, so each method
+  is tested on its own.
+- BM25 stage 1 kept a relevant document: 21/29 known, 6/6 inferred
+- Dense stage 1 kept a relevant document: 28/29 known, 6/6 inferred
+
+### Tukey HSD (α = 0.01)
+
+No pairwise comparison reached significance at α = 0.01, for either retriever,
+on any metric. Largest effect: BM25 ctx vs docfirst nDCG@5 diff = −0.2024,
+p = 0.0518.
+
+### Generation check: settlein_v4_ctx
+
+The `settlein_v4_ctx` prompt variant uses the same prompt text as v4 but formats
+each passage as `[ID] {title} > {heading}: {contents}`. This was run on the 6
+currency questions only (T01Q01, T02Q01, T03Q01, BM25 and dense, k=5,
+include_superseded=true) to check whether contextual headers help the model
+avoid stating the outdated 40-hour work limit.

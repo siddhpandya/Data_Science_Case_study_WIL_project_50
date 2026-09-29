@@ -50,15 +50,32 @@ def load_collection():
     return passages
 
 
+def _normalise(text):
+    """Lowercase, straighten quotes/apostrophes, collapse whitespace."""
+    t = text.lower()
+    t = t.replace("\u2018", "'").replace("\u2019", "'")  # curly single
+    t = t.replace("\u201c", '"').replace("\u201d", '"')  # curly double
+    t = re.sub(r"\s+", " ", t).strip()
+    return t
+
+
 def has_fabricated_quote(answer, passages_text=""):
     """Check if answer contains a 20+ char quoted string not in the retrieved passages.
-    
-    Returns True only when the quoted text does NOT appear word-for-word
-    in the concatenated passage text.
+
+    Both straight ("...") and curly (\u201c...\u201d) quotes are detected.
+    Before comparing, both quote and passage text are normalised:
+    lowercased, curly quotes straightened, whitespace collapsed.
+
+    Returns True only when a quoted string does NOT appear in the passages.
     """
-    quotes = re.findall(r'"([^"]{20,})"', answer)
+    norm_passages = _normalise(passages_text)
+    # Detect text inside both straight and curly quotes
+    straight = re.findall(r'"([^"]{20,})"', answer)
+    curly = re.findall(r'\u201c([^\u201d]{20,})\u201d', answer)
+    quotes = straight + curly
     for q in quotes:
-        if q not in passages_text:
+        norm_q = _normalise(q)
+        if norm_q not in norm_passages:
             return True
     return False
 

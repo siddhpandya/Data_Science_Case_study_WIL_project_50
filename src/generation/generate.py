@@ -60,6 +60,30 @@ def format_passages_v3(results: list[tuple[dict, float]]) -> str:
     return "\n\n---\n\n".join(parts)
 
 
+def format_passages_v4_ctx(results: list[tuple[dict, float]]) -> str:
+    """Format passages with contextual headers: [ID] {title} > {heading}: {contents}.
+
+    Used by the settlein_v4_ctx prompt for the 40-hour currency check.
+    """
+    parts = []
+    for passage, score in results:
+        pid = passage.get("id", "unknown")
+        title = passage.get("title", "")
+        heading = re.sub(r'\(#[^)]*\)', '', passage.get("heading", "")).strip()
+        text = passage.get("contents", "")
+        ctx_parts = []
+        if title:
+            ctx_parts.append(title)
+        if heading:
+            ctx_parts.append(heading)
+        prefix = " > ".join(ctx_parts)
+        if prefix:
+            parts.append(f"[{pid}] {prefix}: {text}")
+        else:
+            parts.append(f"[{pid}]\n{text}")
+    return "\n\n---\n\n".join(parts)
+
+
 def format_passages_legacy(results: list[tuple[dict, float]]) -> str:
     """Format passages for v1/v2 and walert prompts (numbered, source-level)."""
     parts = []
@@ -91,8 +115,10 @@ def build_prompt(
     if variant == "closed_book" or results is None:
         return prompt["system"], prompt["user"].format(question=question)
 
-    # Use v3/v4 formatter for v3/v4 prompts, legacy for everything else.
-    if variant in ("settlein_v3", "settlein_v4", "settlein"):
+    # Use v3/v4 formatter for v3/v4 prompts, v4_ctx for contextual, legacy for everything else.
+    if variant == "settlein_v4_ctx":
+        passages_text = format_passages_v4_ctx(results)
+    elif variant in ("settlein_v3", "settlein_v4", "settlein"):
         passages_text = format_passages_v3(results)
     else:
         passages_text = format_passages_legacy(results)

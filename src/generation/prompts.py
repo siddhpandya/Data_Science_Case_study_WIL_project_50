@@ -152,6 +152,12 @@ PROMPTS = {
         "system": CLOSED_BOOK_INSTRUCTED_SYSTEM,
         "user": CLOSED_BOOK_INSTRUCTED_USER,
     },
+    # v4_ctx: same prompt as v4, but passages are formatted with contextual headers
+    # ({title} > {heading}: {contents}). The formatter dispatch is in generate.py.
+    "settlein_v4_ctx": {
+        "system": SETTLEIN_V4_SYSTEM,
+        "user": SETTLEIN_V4_USER,
+    },
 }
 
 

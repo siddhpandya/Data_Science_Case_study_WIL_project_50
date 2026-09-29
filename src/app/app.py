@@ -161,13 +161,9 @@ def render_evidence(evidence: list[tuple[dict, float]], source_dates: dict):
             src_info = source_dates.get(source_id, {})
             last_upd = src_info.get("last_updated", "")
             retr_at = src_info.get("retrieved_at", "")
-            if last_upd or retr_at:
-                date_parts = []
-                if last_upd:
-                    date_parts.append(f"Last updated: {last_upd}")
-                if retr_at:
-                    date_parts.append(f"Retrieved: {retr_at}")
-                st.caption(" · ".join(date_parts))
+            last_upd = "Not stated" if not last_upd or last_upd.upper() == "TODO" else last_upd
+            retr_at = "Not stated" if not retr_at or retr_at.upper() == "TODO" else retr_at
+            st.caption(f"Last updated: {last_upd} · Retrieved: {retr_at}")
 
             if title:
                 st.markdown(f"**{title}**")
