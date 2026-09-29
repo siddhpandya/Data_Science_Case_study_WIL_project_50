@@ -187,3 +187,53 @@ one relevant passage for both: T11Q02 nDCG@5 = 0.2611, T25Q02 nDCG@5 = 0.7602.
 
 Note: 6 pairs is too few for a statistical comparison across models.
 nomic reduces the gap on T11 and T25 (the two hardest fairness pairs).
+
+## Hybrid Search: Reciprocal Rank Fusion (exploratory)
+
+Fuses the existing BM25 and dense (bge-small-en-v1.5) rankings using RRF:
+`score(p) = Σ 1/(60 + rank)` over the two full ranked lists (all 107 passages).
+Run file: `src/experiments/hybrid_rrf.py`.
+
+### Results (combined, n=35)
+
+| Config | nDCG@1 | nDCG@3 | nDCG@5 | Recall@5 | Hit@5 | MRR |
+|--------|:------:|:------:|:------:|:--------:|:-----:|:---:|
+| bm25 | 0.6143 | 0.6408 | 0.6575 | 0.6586 | 0.8571 | 0.7888 |
+| dense | 0.5429 | 0.6371 | 0.6952 | 0.7767 | 0.9429 | 0.7769 |
+| hybrid_rrf | 0.6000 | 0.7021 | 0.7278 | 0.7676 | 0.9429 | 0.8292 |
+
+### Tukey HSD (α = 0.01, diff = group1 − group2)
+
+| Metric | Comparison | Diff | p |
+|--------|-----------|:----:|:-:|
+| nDCG@5 | bm25 − dense | −0.0377 | 0.8651 (ns) |
+| nDCG@5 | bm25 − hybrid_rrf | −0.0703 | 0.6052 (ns) |
+| nDCG@5 | dense − hybrid_rrf | −0.0326 | 0.8969 (ns) |
+| Recall@5 | bm25 − dense | −0.1181 | 0.2800 (ns) |
+| Recall@5 | bm25 − hybrid_rrf | −0.1090 | 0.3369 (ns) |
+| Recall@5 | dense − hybrid_rrf | +0.0090 | 0.9924 (ns) |
+| Hit@5 | bm25 − dense | −0.0857 | 0.4121 (ns) |
+| Hit@5 | bm25 − hybrid_rrf | −0.0857 | 0.4121 (ns) |
+| Hit@5 | dense − hybrid_rrf | −0.0000 | 1.0000 (ns) |
+| MRR | bm25 − dense | +0.0120 | 0.9865 (ns) |
+| MRR | bm25 − hybrid_rrf | −0.0404 | 0.8562 (ns) |
+| MRR | dense − hybrid_rrf | −0.0523 | 0.7707 (ns) |
+
+No comparison reaches significance at α = 0.01.
+
+### Diagnostic questions
+
+T11Q02 and T25Q02 remain at zero for all three methods (BM25, dense, hybrid).
+
+### Fairness: nDCG@5 gaps
+
+| Pair | bm25 gap | dense gap | hybrid_rrf gap |
+|------|:--------:|:---------:|:--------------:|
+| T04 | 0.1900 | 0.0761 | 0.0498 |
+| T11 | 0.5209 | 0.6388 | 0.5406 |
+| T18 | 0.1597 | 0.0793 | 0.0761 |
+| T25 | 1.0000 | 0.9239 | 1.0000 |
+| T30 | 0.1637 | 0.0498 | 0.0000 |
+| T39 | 0.0000 | 0.0000 | 0.0000 |
+
+Note: 6 pairs is too few for a statistical comparison.
