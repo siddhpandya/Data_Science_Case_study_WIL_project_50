@@ -50,9 +50,17 @@ def load_collection():
     return passages
 
 
-def has_fabricated_quote(answer):
-    """Check if answer contains quoted text (potential fabrication)."""
-    return bool(re.search(r'"[^"]{20,}"', answer))
+def has_fabricated_quote(answer, passages_text=""):
+    """Check if answer contains a 20+ char quoted string not in the retrieved passages.
+    
+    Returns True only when the quoted text does NOT appear word-for-word
+    in the concatenated passage text.
+    """
+    quotes = re.findall(r'"([^"]{20,})"', answer)
+    for q in quotes:
+        if q not in passages_text:
+            return True
+    return False
 
 
 def make_coding_sheet():
@@ -177,6 +185,8 @@ def make_coding_sheet_v2():
     selected_qids = selected_known + selected_inferred + selected_ookb
     print(f"  Selected: {len(selected_known)} known, {len(selected_inferred)} inferred, {len(selected_ookb)} out_of_kb")
 
+    collection = load_collection()
+
     # Build 60 rows with hidden source tag for the key
     all_rows = []
     for qid in selected_qids:
@@ -185,7 +195,9 @@ def make_coding_sheet_v2():
         g = gold.get(qid, {})
 
         for source, rec in [("dense", d), ("closed_book", c)]:
-            retrieved = "; ".join(rec.get("retrieved_ids", [])) if source == "dense" else ""
+            retrieved_ids = rec.get("retrieved_ids", []) if source == "dense" else []
+            retrieved = "; ".join(retrieved_ids)
+            passages_text = " ".join(collection.get(pid, "") for pid in retrieved_ids)
             all_rows.append({
                 "_source": source,
                 "_question_id": qid,
@@ -197,7 +209,7 @@ def make_coding_sheet_v2():
                 "supported": "",
                 "applicable": "",
                 "citation_valid": "",
-                "fabricated_quote": "YES" if has_fabricated_quote(rec["answer"]) else "",
+                "fabricated_quote": "YES" if has_fabricated_quote(rec["answer"], passages_text) else "",
                 "notes": "",
             })
 

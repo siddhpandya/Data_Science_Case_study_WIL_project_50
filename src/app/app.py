@@ -17,6 +17,7 @@ sys.path.insert(0, str(REPO_ROOT))
 
 from src.retrieval.search import SearchEngine, load_collection
 from src.generation.generate import generate_answer, load_config
+import csv
 
 # ── Page Config ──────────────────────────────────────────────────────────────
 
@@ -55,6 +56,21 @@ def init_search_engine():
     passages = load_collection()
     engine = SearchEngine(passages)
     return engine, passages
+
+
+@st.cache_resource
+def load_source_dates():
+    """Load retrieval and last-updated dates from sources_draft.csv."""
+    path = REPO_ROOT / "data" / "sources_draft.csv"
+    dates = {}
+    if path.exists():
+        with open(path, encoding="utf-8") as f:
+            for row in csv.DictReader(f):
+                dates[row["source_id"]] = {
+                    "retrieved_at": row.get("retrieved_at", ""),
+                    "last_updated": row.get("last_updated", ""),
+                }
+    return dates
 
 
 def init_session():
@@ -116,7 +132,7 @@ def render_sidebar(passages):
 
 # ── Evidence Panel ───────────────────────────────────────────────────────────
 
-def render_evidence(evidence: list[tuple[dict, float]]):
+def render_evidence(evidence: list[tuple[dict, float]], source_dates: dict):
     """Render the evidence panel with retrieved passages."""
     if not evidence:
         return
@@ -140,6 +156,19 @@ def render_evidence(evidence: list[tuple[dict, float]]):
             if publisher:
                 meta_parts.append(f"Publisher: {publisher}")
             st.caption(" · ".join(meta_parts))
+
+            # Dates from sources_draft.csv
+            src_info = source_dates.get(source_id, {})
+            last_upd = src_info.get("last_updated", "")
+            retr_at = src_info.get("retrieved_at", "")
+            if last_upd or retr_at:
+                date_parts = []
+                if last_upd:
+                    date_parts.append(f"Last updated: {last_upd}")
+                if retr_at:
+                    date_parts.append(f"Retrieved: {retr_at}")
+                st.caption(" · ".join(date_parts))
+
             if title:
                 st.markdown(f"**{title}**")
             if heading:
@@ -167,6 +196,7 @@ def main():
         return
 
     config = load_config()
+    source_dates = load_source_dates()
 
     # Header
     st.markdown('<h1 class="main-header">🇦🇺 SettleIN</h1>', unsafe_allow_html=True)
@@ -226,7 +256,7 @@ def main():
                     )
 
     with evidence_col:
-        render_evidence(st.session_state.evidence)
+        render_evidence(st.session_state.evidence, source_dates)
 
     # Example questions on first load
     if not st.session_state.messages:

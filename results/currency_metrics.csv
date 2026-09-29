@@ -1,0 +1,13 @@
+question_id,config,total_cited,stale_cited,stale_citation_rate
+T01Q01,bm25-k5-settlein_v4,1,0,0.0
+T02Q01,bm25-k5-settlein_v4,1,0,0.0
+T03Q01,bm25-k5-settlein_v4,1,0,0.0
+T01Q01,closed_book,0,0,0.0
+T02Q01,closed_book,0,0,0.0
+T03Q01,closed_book,0,0,0.0
+T01Q01,currency_with_superseded,1,0,0.0
+T02Q01,currency_with_superseded,2,0,0.0
+T03Q01,currency_with_superseded,0,0,0.0
+T01Q01,dense-k5-settlein_v4,1,0,0.0
+T02Q01,dense-k5-settlein_v4,2,0,0.0
+T03Q01,dense-k5-settlein_v4,2,0,0.0

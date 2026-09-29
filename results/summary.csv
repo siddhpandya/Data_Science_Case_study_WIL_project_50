@@ -1,0 +1,5 @@
+config,n_queries,mean_ndcg@1,mean_ndcg@3,mean_ndcg@5,mean_recall@5,mean_hit_rate@5,mean_mrr,known_ndcg@5,known_recall@5,inferred_ndcg@5,inferred_recall@5,correct_refusal_rate,over_refusal_rate,mean_supported_rate,mean_citation_precision,unattributed_rate
+bm25-k5-settlein_v4,35,0.6143,0.6408,0.6575,0.6586,0.8571,0.7738,0.7071,0.7069,0.4179,0.425,0.4615,0.0,,0.5732,0.0208
+closed_book,0,,,,,,,,,,,0.0,0.0,,,1.0
+closed_book_instructed,0,,,,,,,,,,,0.1538,0.2571,,,
+dense-k5-settlein_v4,35,0.5429,0.6371,0.6952,0.7767,0.9429,0.7714,0.7134,0.796,0.6074,0.6833,0.5385,0.0286,,0.6842,0.0417

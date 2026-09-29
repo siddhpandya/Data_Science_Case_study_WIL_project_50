@@ -14,6 +14,11 @@ results/*
 !results/figures/.gitkeep
 !results/generations/
 !results/generations/.gitkeep
+!results/coding_sheets/
+!results/coding_sheets/**
+!results/*.csv
+!results/*.md
+!results/grid_manifest.json
 
 # Generated cache
 data/embeddings/*.npy
