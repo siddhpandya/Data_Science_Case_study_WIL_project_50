@@ -241,13 +241,24 @@ def generate_answer(
                 "seed": seed,
             },
         )
-        answer_text = response["message"]["content"]
+        # Ollama ≥0.4 returns typed objects (ChatResponse, Message);
+        # older versions return plain dicts.  Handle both.
+        msg = response.message if hasattr(response, "message") else response["message"]
+        answer_text = msg.content if hasattr(msg, "content") else msg["content"]
         refused_strict, refused_lenient = detect_refusal(answer_text)
+
+        prompt_eval = (response.prompt_eval_count
+                       if hasattr(response, "prompt_eval_count")
+                       else response.get("prompt_eval_count", 0))
+        eval_count = (response.eval_count
+                      if hasattr(response, "eval_count")
+                      else response.get("eval_count", 0))
+
         return {
             "answer": answer_text,
             "refused": refused_strict or refused_lenient,
-            "prompt_eval_count": response.get("prompt_eval_count", 0),
-            "eval_count": response.get("eval_count", 0),
+            "prompt_eval_count": prompt_eval,
+            "eval_count": eval_count,
         }
     except Exception as e:
         return {
