@@ -215,8 +215,11 @@ def generate_answer(
                 "seed": seed,
             },
         )
+        answer_text = response["message"]["content"]
+        refused_strict, refused_lenient = detect_refusal(answer_text)
         return {
-            "answer": response["message"]["content"],
+            "answer": answer_text,
+            "refused": refused_strict or refused_lenient,
             "prompt_eval_count": response.get("prompt_eval_count", 0),
             "eval_count": response.get("eval_count", 0),
         }

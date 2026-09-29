@@ -95,46 +95,50 @@ pip install -r requirements.txt
 ### 3. Setup Ollama Model
 Ensure the Ollama service is running, then pull the pinned model:
 ```bash
-ollama pull llama3.1:8b
+ollama pull llama3.2:3b
 ```
 
 ---
 
 ## Execution Workflow
 
-All pipeline phases are configured via `config/config.yaml`.
-
-- **Phase 0**: Scaffold and verify schemas
+- **Validate Ground Truth**:
   ```bash
-  python -c "import yaml; yaml.safe_load(open('config/config.yaml'))"
-  pytest tests/
+  python validate_ground_truth.py
   ```
-- **Phase 1**: Ingestion & Extraction
+- **Run Retrieval + Generation** (BM25 and Dense):
   ```bash
-  python -m src.ingest.fetch
-  python -m src.ingest.extract
+  python -m src.experiments.batch_run --method bm25 --variant settlein_v4 --name bm25-k5-settlein_v4
+  python -m src.experiments.batch_run --method dense --variant settlein_v4 --name dense-k5-settlein_v4
   ```
-- **Phase 2**: Build Collection
+- **Run Evaluations**:
   ```bash
-  python -m src.ingest.build_collection
-  ```
-- **Phase 3**: Retrieval & Search
-  ```bash
-  python -m src.retrieval.search
-  ```
-- **Phase 4**: Generation
-  ```bash
-  python -m src.generation.generate
-  ```
-- **Phase 5**: Evaluation & Reporting
-  ```bash
+  python -m src.evaluation.retrieval_eval
+  python -m src.evaluation.answerability_eval
+  python -m src.evaluation.attribution_eval
   python -m src.evaluation.report
   ```
-- **Phase 6**: Experiment Grid
-  ```bash
-  python -m src.experiments.run_grid
-  ```
-- **Phase 7**: Interactive Streamlit Demo
+- **Interactive Streamlit Demo**:
   ```bash
   streamlit run src/app/app.py
   ```
+
+See [walkthrough.md](walkthrough.md) for full reproduction instructions.
+
+---
+
+## Key Results
+
+| Metric | BM25-k5 | Dense-k5 | Tukey p |
+|--------|:-------:|:--------:|:-------:|
+| nDCG@5 | 0.6575 | 0.6952 | 0.63 (ns) |
+| Recall@5 | 0.6586 | 0.7767 | 0.15 (ns) |
+| Hit@5 | 0.8571 | 0.9429 | 0.24 (ns) |
+| MRR | 0.7738 | 0.7714 | 0.98 (ns) |
+| Correct Refusal | 46.2% | 53.8% | — |
+| Over-Refusal | 0.0% | 2.9% | — |
+| Citation Precision | 57.4% | 67.2% | — |
+
+**Model**: llama3.2:3b · **Prompt**: settlein_v4 · **Context**: num_ctx=4096, num_predict=512
+
+No metric difference reaches significance at α = 0.01 (Tukey HSD, n=35 answerable questions).
