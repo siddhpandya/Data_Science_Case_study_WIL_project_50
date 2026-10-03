@@ -225,12 +225,43 @@ class SearchEngine:
             model_name=dense_cfg.get("model", "BAAI/bge-small-en-v1.5"),
         )
 
+        rerank_cfg = cfg.get("retrieval", {}).get("rerank", {})
+        self.rerank_model = rerank_cfg.get("model", "BAAI/bge-reranker-v2-m3")
+        self.rerank_pool = rerank_cfg.get("pool_depth", 20)
+        self._hybrid = None
+
+    def _build_hybrid(self):
+        """Lazily build contextual-header BM25 + dense indexes and the reranker."""
+        if self._hybrid is None:
+            # Imported here: retrieval_ablation imports this module.
+            from src.experiments.retrieval_ablation import ContextualBM25Index, ContextualDenseIndex
+            from src.retrieval.rerank import CrossEncoderReranker
+            self._hybrid = {
+                "bm25_ctx": ContextualBM25Index(self.passages),
+                "dense_ctx": ContextualDenseIndex(self.passages),
+                "reranker": CrossEncoderReranker(self.rerank_model),
+            }
+        return self._hybrid
+
+    def hybrid_rerank_search(self, query: str, top_k: int = 5) -> list[tuple[dict, float]]:
+        """RRF of contextual BM25 + dense, top pool_depth reranked by a cross-encoder.
+
+        Scores are cross-encoder sigmoid scores in [0, 1].
+        """
+        from src.experiments.hybrid_rrf import rrf_fuse
+        h = self._build_hybrid()
+        n = len(self.passages)
+        fused = rrf_fuse(h["bm25_ctx"].search(query, top_k=n), h["dense_ctx"].search(query, top_k=n))
+        return h["reranker"].rerank(query, fused[:self.rerank_pool], top_k=top_k)
+
     def search(self, query: str, method: str = "dense", top_k: int = 5) -> list[tuple[dict, float]]:
         """Search using specified method with fixed top_k (for evaluation)."""
         if method == "bm25":
             return self.bm25.search(query, top_k)
         elif method == "dense":
             return self.dense.search(query, top_k)
+        elif method == "hybrid_rerank":
+            return self.hybrid_rerank_search(query, top_k)
         else:
             raise ValueError(f"Unknown retrieval method: {method}")
 

@@ -241,3 +241,127 @@ T11Q02 and T25Q02 remain at zero for all three methods (BM25, dense, hybrid).
 | T39 | 0.0000 | 0.0000 | 0.0000 |
 
 Note: 6 pairs is too few for a statistical comparison.
+
+## Paired Significance Testing (evaluation correction)
+
+The comparisons above used statsmodels `pairwise_tukeyhsd`, which treats each
+configuration's 35 per-question scores as an independent sample. Every
+configuration answers the same questions, so the design is paired: the large
+between-question variance should cancel out, and an unpaired test hides real
+differences. All retrieval comparisons were re-run with a two-sided paired
+randomization (sign-flip) test, 10,000 permutations, Holm-adjusted within each
+experiment and metric, α = 0.01, with 95% bootstrap CIs on the mean
+difference. Code: `src/evaluation/stats.py`,
+`src/evaluation/paired_retrieval_stats.py`; output:
+`results/paired_retrieval_stats.csv` (Tukey p shown alongside).
+
+Comparisons that change from not significant to significant:
+
+| Experiment | Metric | Comparison | Diff | p (paired, Holm) | p (Tukey) |
+|------------|--------|-----------|:----:|:----------------:|:---------:|
+| main | Recall@5 | bm25 − dense | −0.1181 | 0.0088 | 0.1453 |
+| hybrid_rrf | Recall@5 | bm25 − hybrid_rrf | −0.1090 | 0.0096 | 0.3369 |
+| retrieval_ablation | Recall@5 | bm25_ctx − bm25_docfirst | +0.2076 | 0.0091 | 0.1143 |
+
+Everything else reported as not significant above remains not significant.
+
+## Answer Quality vs Gold Answers (evaluation addition)
+
+`src/evaluation/answer_quality_eval.py` compares each answer with
+`data/gold_answers.csv` on the 35 answerable questions (citations stripped,
+refusals score 0, no LLM judge): token recall/F1 (SQuAD-style, stop words
+removed), ROUGE-L recall/F1, and bge-small cosine similarity. Generated
+answers are much longer than gold answers, so recall is the main lexical
+number. Output: `results/answer_quality.csv`, `results/answer_quality_stats.csv`.
+
+| Config | Token Recall | Token F1 | ROUGE-L F1 | Semantic Sim |
+|--------|:-----------:|:--------:|:----------:|:------------:|
+| bm25-k5-settlein_v4 | 0.4109 | 0.3933 | 0.3405 | 0.8412 |
+| dense-k5-settlein_v4 | 0.4275 | 0.4228 | 0.3513 | 0.8187 |
+| closed_book | 0.4067 | 0.1260 | 0.0888 | 0.8064 |
+| closed_book_instructed | 0.2225 | 0.1061 | 0.0727 | 0.5538 |
+
+Closed-book answers cover as much gold content as RAG answers (token recall
+0.41 vs 0.41–0.43, not significant) but are long and generic, so their F1 is
+about a third of RAG's. Lexical overlap cannot tell a correct paraphrase from
+a wrong statement, so these metrics complement, not replace, the manual
+faithfulness coding.
+
+## Answerability Reporting (evaluation addition)
+
+`answerability_eval.py` now reports 95% Wilson intervals, lenient refusal
+rates (any decline phrase) and balanced accuracy, (correct refusal + 1 −
+over-refusal) / 2. With 13 out-of-KB questions one question is 7.7 points:
+BM25 46.2% [23.2, 70.9] vs dense 53.8% [29.1, 76.8] is a one-question
+difference.
+
+## Cross-Encoder Reranking (exploratory: run after the main evaluation)
+
+Run file: `src/experiments/rerank_experiment.py`. First stage `hybrid_ctx`:
+RRF (k = 60) of contextual-header BM25 and contextual-header dense
+(bge-small, sub-chunked as in Method 1). The top 20 are reranked by a
+cross-encoder reading `{title} > {heading}: {contents}` (max 512 tokens,
+sigmoid score in [0, 1]). Two rerankers were tried: `BAAI/bge-reranker-base`
+and `BAAI/bge-reranker-v2-m3`. Recall@20 of the pool is 0.9295, which caps
+what reranking can recover.
+
+### Results (combined, n=35)
+
+| Config | nDCG@1 | nDCG@3 | nDCG@5 | Recall@5 | Hit@5 | MRR@5 |
+|--------|:------:|:------:|:------:|:--------:|:-----:|:-----:|
+| bm25 | 0.6143 | 0.6408 | 0.6575 | 0.6586 | 0.8571 | 0.7738 |
+| dense | 0.5429 | 0.6371 | 0.6952 | 0.7767 | 0.9429 | 0.7714 |
+| hybrid_rrf | 0.6000 | 0.7021 | 0.7278 | 0.7676 | 0.9429 | 0.8238 |
+| hybrid_ctx | 0.7571 | 0.7545 | 0.7849 | 0.7900 | 0.9714 | 0.9048 |
+| hybrid_ctx+rerank_base | 0.7143 | 0.7566 | 0.7740 | 0.8186 | 0.9714 | 0.8714 |
+| hybrid_ctx+rerank_m3 | 0.8571 | 0.8046 | 0.8452 | 0.8633 | 0.9714 | 0.9571 |
+
+### Paired randomization test (Holm across all 15 pairs per metric, α = 0.01)
+
+| Metric | Comparison | Diff | p_holm |
+|--------|-----------|:----:|:------:|
+| nDCG@5 | dense − hybrid_ctx+rerank_m3 | −0.1500 | 0.0015 (sig) |
+| nDCG@5 | hybrid_rrf − hybrid_ctx+rerank_m3 | −0.1173 | 0.0060 (sig) |
+| nDCG@5 | hybrid_ctx − hybrid_ctx+rerank_m3 | −0.0603 | 0.0952 (ns) |
+| Recall@5 | dense − hybrid_ctx+rerank_m3 | −0.0867 | 0.0700 (ns) |
+| MRR@5 | dense − hybrid_ctx+rerank_m3 | −0.1857 | 0.0360 (ns) |
+
+bge-reranker-base does not improve on hybrid_ctx. T11Q02 now retrieves
+relevant passages (nDCG@5 0.6388 with either reranker); T25Q02 is still zero
+for every configuration. Six configurations were compared on the test set,
+so the best one is optimistically selected; treat its scores as an upper
+estimate until confirmed on held-out questions.
+
+### Reranker score as an answerability signal
+
+Top-1 score, answerable (35) vs out-of-KB (13), ROC AUC: bm25 0.804, dense
+0.884, hybrid_rrf 0.742, hybrid_ctx 0.800, rerank_base 0.916, rerank_m3 0.954.
+For rerank_m3, 12 of 13 out-of-KB questions have top-1 < 0.025 (T07Q01: 0.251);
+two answerable questions fall below 0.05 (T05Q01 0.0026, T25Q02 0.0026).
+Full threshold sweep: `results/rerank_answerability.csv`.
+
+### Generation run: hybrid_rerank-k5-settlein_v4-gate05
+
+`python -m src.experiments.batch_run --method hybrid_rerank --variant settlein_v4
+--refusal-threshold 0.05 --name hybrid_rerank-k5-settlein_v4-gate05`: hybrid_ctx
++ bge-reranker-v2-m3, top 5, same prompt (settlein_v4) and model (llama3.2:3b)
+as the main runs. If the top reranker score is below 0.05 the question is
+refused without calling the LLM (`refusal_mechanism = "threshold"`). The
+threshold was chosen after seeing the test-set sweep above, so the refusal
+numbers are optimistic. Retrieval metrics of this run match the rerank
+experiment exactly (nDCG@5 0.8452).
+
+| Config | Correct Refusal | Over-Refusal | Balanced Acc. | Citation Precision | Citation Recall | Token F1 |
+|--------|:---------------:|:------------:|:-------------:|:------------------:|:---------------:|:--------:|
+| bm25-k5-settlein_v4 | 0.4615 [0.23, 0.71] | 0.0000 [0.00, 0.10] | 0.7308 | 0.5732 | 0.5972 | 0.3933 |
+| dense-k5-settlein_v4 | 0.5385 [0.29, 0.77] | 0.0286 [0.01, 0.14] | 0.7549 | 0.6842 | 0.5227 | 0.4228 |
+| hybrid_rerank gate 0.05 | 1.0000 [0.77, 1.00] | 0.0857 [0.03, 0.22] | 0.9571 | 0.7889 | 0.4714 | 0.4257 |
+
+- 12 of 13 out-of-KB questions were refused by the threshold, T07Q01 by the
+  prompt. McNemar vs dense on correct refusal: 6 discordant pairs, all in
+  favour of hybrid_rerank, p = 0.0312 (not significant at α = 0.01).
+- Over-refusals: T05Q01 and T25Q02 (threshold), T03Q01 (prompt, even though
+  S17_001 was ranked first). McNemar vs dense p = 0.50.
+- Answer quality against gold answers does not change (all paired p > 0.5):
+  with retrieval improved, the 3B generator is now the limiting factor.
+- T25Q01 cites S06_001, which was not retrieved.

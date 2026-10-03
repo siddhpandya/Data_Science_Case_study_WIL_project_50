@@ -110,12 +110,17 @@ ollama pull llama3.2:3b
   ```bash
   python -m src.experiments.batch_run --method bm25 --variant settlein_v4 --name bm25-k5-settlein_v4
   python -m src.experiments.batch_run --method dense --variant settlein_v4 --name dense-k5-settlein_v4
+  # exploratory: hybrid retrieval + cross-encoder rerank + refusal gate
+  python -m src.experiments.rerank_experiment
+  python -m src.experiments.batch_run --method hybrid_rerank --variant settlein_v4 --refusal-threshold 0.05 --name hybrid_rerank-k5-settlein_v4-gate05
   ```
 - **Run Evaluations**:
   ```bash
   python -m src.evaluation.retrieval_eval
   python -m src.evaluation.answerability_eval
   python -m src.evaluation.attribution_eval
+  python -m src.evaluation.answer_quality_eval
+  python -m src.evaluation.paired_retrieval_stats
   python -m src.evaluation.report
   ```
 - **Interactive Streamlit Demo**:
@@ -129,16 +134,28 @@ See [walkthrough.md](walkthrough.md) for full reproduction instructions.
 
 ## Key Results
 
-| Metric | BM25-k5 | Dense-k5 | Tukey p |
-|--------|:-------:|:--------:|:-------:|
-| nDCG@5 | 0.6575 | 0.6952 | 0.63 (ns) |
-| Recall@5 | 0.6586 | 0.7767 | 0.15 (ns) |
-| Hit@5 | 0.8571 | 0.9429 | 0.24 (ns) |
-| MRR | 0.7738 | 0.7714 | 0.98 (ns) |
-| Correct Refusal | 46.2% | 53.8% | — |
-| Over-Refusal | 0.0% | 2.9% | — |
-| Citation Precision | 57.4% | 67.2% | — |
+| Metric | BM25-k5 | Dense-k5 | Paired p (BM25 vs Dense) | Hybrid + rerank (exploratory) |
+|--------|:-------:|:--------:|:------------------------:|:-----------------------------:|
+| nDCG@5 | 0.6575 | 0.6952 | 0.45 (ns) | 0.8452 |
+| Recall@5 | 0.6586 | 0.7767 | **0.0088** | 0.8633 |
+| Hit@5 | 0.8571 | 0.9429 | 0.25 (ns) | 0.9714 |
+| MRR@5 | 0.7738 | 0.7714 | 1.00 (ns) | 0.9571 |
+| Correct Refusal (n=13) | 46.2% | 53.8% | — | 100% |
+| Over-Refusal (n=35) | 0.0% | 2.9% | — | 8.6% |
+| Citation Precision | 57.3% | 68.4% | — | 78.9% |
+| Token F1 vs gold answer | 0.393 | 0.423 | — | 0.426 |
 
 **Model**: llama3.2:3b · **Prompt**: settlein_v4 · **Context**: num_ctx=4096, num_predict=512
 
-No metric difference reaches significance at α = 0.01 (Tukey HSD, n=35 answerable questions).
+Significance uses a paired randomization test (n=35 answerable questions, Holm-adjusted,
+α = 0.01). Dense retrieves significantly more relevant passages than BM25 (Recall@5); no
+other BM25-vs-dense difference is significant. The earlier unpaired Tukey HSD ignored the
+per-question pairing and reported all differences as non-significant.
+
+**Hybrid + rerank** (`--method hybrid_rerank --refusal-threshold 0.05`) fuses
+contextual-header BM25 and dense with RRF, reranks the top 20 with `BAAI/bge-reranker-v2-m3`,
+and refuses without generating when the top reranker score is below 0.05. Its nDCG@5 gain
+over dense is significant (paired p_holm = 0.0003). It was selected after comparing six
+configurations on the test set, and its refusal threshold was chosen from a test-set
+sweep, so these numbers are optimistic until confirmed on held-out questions. See
+`docs/methods_notes.md` and `results/summary.md` for confidence intervals and details.

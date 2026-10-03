@@ -21,7 +21,7 @@ sys.path.insert(0, str(REPO_ROOT))
 from src.retrieval.search import SearchEngine, load_collection
 from src.generation.generate import (
     generate_answer, load_config,
-    parse_citations, detect_refusal, validate_citations,
+    parse_citations, detect_refusal, validate_citations, REFUSAL_STRING,
 )
 
 
@@ -82,10 +82,16 @@ def run_generation_batch(
     config_name: str,
     config: dict | None = None,
     collection_ids: set[str] | None = None,
+    refusal_threshold: float | None = None,
 ) -> list[dict]:
     """Run generation for all topics, write generations JSONL.
 
     Resumable: appends to existing file, skips already-done questions.
+
+    refusal_threshold: if set and the top retrieved score is below it, the
+    question is refused without calling the LLM (refusal_mechanism
+    "threshold"). Only meaningful for retrievers with calibrated scores
+    (hybrid_rerank: cross-encoder sigmoid in [0, 1]).
     """
     if config is None:
         config = load_config()
@@ -114,13 +120,19 @@ def run_generation_batch(
             results = retrieval_results.get(qid)
             retrieved_ids = [r[0]["id"] for r in results] if results else []
 
+            top_score = results[0][1] if results else 0.0
+            gated = refusal_threshold is not None and top_score < refusal_threshold
+
             t0 = time.time()
-            gen_result = generate_answer(
-                question=question,
-                results=results,
-                variant=variant,
-                config=config,
-            )
+            if gated:
+                gen_result = {"answer": REFUSAL_STRING, "prompt_eval_count": 0, "eval_count": 0}
+            else:
+                gen_result = generate_answer(
+                    question=question,
+                    results=results,
+                    variant=variant,
+                    config=config,
+                )
             latency_ms = int((time.time() - t0) * 1000)
 
             answer = gen_result["answer"]
@@ -152,7 +164,8 @@ def run_generation_batch(
                 "refused_strict": refused_strict,
                 "refused_lenient": refused_lenient,
                 "refused": refused_strict,  # backward compat
-                "refusal_mechanism": "prompt" if refused_strict else "none",
+                "refusal_mechanism": "threshold" if gated else ("prompt" if refused_strict else "none"),
+                "refusal_threshold": refusal_threshold,
                 "latency_ms": latency_ms,
                 "prompt_eval_count": prompt_eval_count,
                 "eval_count": eval_count,
@@ -164,7 +177,7 @@ def run_generation_batch(
             f.write(json.dumps(gen_record, ensure_ascii=False) + "\n")
             f.flush()
 
-            status = "REFUSED" if refused_strict else f"{len(answer)} chars"
+            status = ("REFUSED (threshold)" if gated else "REFUSED") if refused_strict else f"{len(answer)} chars"
             warns = ""
             if cited_not_retrieved:
                 warns += f" ⚠ not_retrieved={cited_not_retrieved}"
@@ -182,6 +195,7 @@ def run_single_config(
     top_k: int,
     variant: str,
     config_name: str | None = None,
+    refusal_threshold: float | None = None,
 ):
     """Run a single retrieval+generation configuration."""
     if config_name is None:
@@ -219,6 +233,7 @@ def run_single_config(
     generations = run_generation_batch(
         topics, retrieval_results, variant, config_name, config,
         collection_ids=collection_ids,
+        refusal_threshold=refusal_threshold,
     )
 
     return generations
@@ -229,11 +244,14 @@ if __name__ == "__main__":
     from src.generation.prompts import PROMPTS
 
     parser = argparse.ArgumentParser(description="Run batch retrieval + generation")
-    parser.add_argument("--method", default="dense", choices=["bm25", "dense", "closed_book"])
+    parser.add_argument("--method", default="dense", choices=["bm25", "dense", "hybrid_rerank", "closed_book"])
     parser.add_argument("--top-k", type=int, default=5)
     parser.add_argument("--variant", default="settlein_v4", choices=list(PROMPTS.keys()))
     parser.add_argument("--name", default=None, help="Config name override")
+    parser.add_argument("--refusal-threshold", type=float, default=None,
+                        help="Refuse without generating when the top retrieval score is below this "
+                             "(use with --method hybrid_rerank)")
     args = parser.parse_args()
 
-    run_single_config(args.method, args.top_k, args.variant, args.name)
+    run_single_config(args.method, args.top_k, args.variant, args.name, args.refusal_threshold)
 

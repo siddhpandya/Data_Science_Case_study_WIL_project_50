@@ -137,6 +137,10 @@ def evaluate_all_configs():
 
     for gen_file in sorted(gen_dir.glob("*.jsonl")):
         config_name = gen_file.stem
+        # Currency-only generation files have no question_type (see currency_eval.py)
+        if "currency" in config_name:
+            print(f"Skipping attribution: {config_name} (currency subset)")
+            continue
         print(f"Evaluating attribution: {config_name}")
         results = evaluate_attribution(config_name)
         all_results.extend(results)

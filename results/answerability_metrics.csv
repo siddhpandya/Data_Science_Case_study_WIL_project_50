@@ -1,5 +1,6 @@
-config,total_questions,out_of_kb_count,answerable_count,correct_refusals,correct_refusal_rate,over_refusals,over_refusal_rate,refusal_by_mechanism
-bm25-k5-settlein_v4,48,13,35,6,0.4615,0,0.0,"{""prompt"": 6}"
-closed_book,48,13,35,0,0.0,0,0.0,{}
-closed_book_instructed,48,13,35,2,0.1538,9,0.2571,"{""prompt"": 2}"
-dense-k5-settlein_v4,48,13,35,7,0.5385,1,0.0286,"{""prompt"": 7}"
+config,total_questions,out_of_kb_count,answerable_count,correct_refusals,correct_refusal_rate,over_refusals,over_refusal_rate,correct_refusal_ci95,over_refusal_ci95,balanced_accuracy,correct_refusal_rate_lenient,over_refusal_rate_lenient,refusal_by_mechanism
+bm25-k5-settlein_v4,48,13,35,6,0.4615,0,0.0,"[0.232, 0.709]","[0.000, 0.099]",0.7308,0.4615,0.0286,"{""prompt"": 6}"
+closed_book,48,13,35,0,0.0,0,0.0,"[0.000, 0.228]","[0.000, 0.099]",0.5,0.0,0.0,{}
+closed_book_instructed,48,13,35,2,0.1538,9,0.2571,"[0.043, 0.422]","[0.142, 0.421]",0.4484,0.3846,0.3714,"{""prompt"": 2}"
+dense-k5-settlein_v4,48,13,35,7,0.5385,1,0.0286,"[0.291, 0.768]","[0.005, 0.145]",0.7549,0.6154,0.0571,"{""prompt"": 7}"
+hybrid_rerank-k5-settlein_v4-gate05,48,13,35,13,1.0,3,0.0857,"[0.772, 1.000]","[0.030, 0.224]",0.9571,1.0,0.0857,"{""threshold"": 12, ""prompt"": 1}"

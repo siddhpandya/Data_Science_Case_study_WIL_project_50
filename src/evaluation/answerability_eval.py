@@ -6,6 +6,12 @@ Two metrics:
 
 Breaks correct refusal rate down by refusal_mechanism (threshold vs prompt).
 
+With only 13 out-of-KB questions one question moves the correct-refusal rate
+by 7.7 points, so every rate is reported with a 95% Wilson interval. Rates are
+reported for strict refusals (exact refusal string, the primary metric) and
+lenient refusals (any decline phrase). Balanced accuracy averages correct
+refusal and (1 - over-refusal) so the two error types weigh equally.
+
 Output: results/answerability_metrics.csv
 """
 
@@ -15,6 +21,9 @@ import sys
 from pathlib import Path
 
 REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+sys.path.insert(0, str(REPO_ROOT))
+
+from src.evaluation.stats import wilson_ci
 
 
 def load_generations(config_name: str) -> list[dict]:
@@ -51,6 +60,13 @@ def evaluate_answerability(config_name: str) -> dict:
             mech = g.get("refusal_mechanism", "unknown")
             mechanism_counts[mech] = mechanism_counts.get(mech, 0) + 1
 
+    cr_lo, cr_hi = wilson_ci(correct_refusals, len(out_of_kb))
+    or_lo, or_hi = wilson_ci(over_refusals, len(answerable))
+
+    # Lenient: any decline phrase counts as a refusal
+    lenient_cr = sum(1 for g in out_of_kb if g.get("refused_lenient", g["refused"]))
+    lenient_or = sum(1 for g in answerable if g.get("refused_lenient", g["refused"]))
+
     result = {
         "config": config_name,
         "total_questions": len(generations),
@@ -60,6 +76,11 @@ def evaluate_answerability(config_name: str) -> dict:
         "correct_refusal_rate": round(correct_refusal_rate, 4),
         "over_refusals": over_refusals,
         "over_refusal_rate": round(over_refusal_rate, 4),
+        "correct_refusal_ci95": f"[{cr_lo:.3f}, {cr_hi:.3f}]",
+        "over_refusal_ci95": f"[{or_lo:.3f}, {or_hi:.3f}]",
+        "balanced_accuracy": round((correct_refusal_rate + 1 - over_refusal_rate) / 2, 4),
+        "correct_refusal_rate_lenient": round(lenient_cr / len(out_of_kb), 4) if out_of_kb else 0.0,
+        "over_refusal_rate_lenient": round(lenient_or / len(answerable), 4) if answerable else 0.0,
         "refusal_by_mechanism": json.dumps(mechanism_counts),
     }
 
@@ -80,8 +101,9 @@ def evaluate_all_configs() -> list[dict]:
         print(f"Evaluating answerability: {config_name}")
         result = evaluate_answerability(config_name)
         results.append(result)
-        print(f"  Correct refusal rate: {result['correct_refusal_rate']:.1%}")
-        print(f"  Over-refusal rate:    {result['over_refusal_rate']:.1%}")
+        print(f"  Correct refusal rate: {result['correct_refusal_rate']:.1%} {result['correct_refusal_ci95']}")
+        print(f"  Over-refusal rate:    {result['over_refusal_rate']:.1%} {result['over_refusal_ci95']}")
+        print(f"  Balanced accuracy:    {result['balanced_accuracy']:.1%}")
 
     if results:
         out_path = REPO_ROOT / "results" / "answerability_metrics.csv"
