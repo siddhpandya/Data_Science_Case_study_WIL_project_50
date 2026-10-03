@@ -365,3 +365,40 @@ experiment exactly (nDCG@5 0.8452).
 - Answer quality against gold answers does not change (all paired p > 0.5):
   with retrieval improved, the 3B generator is now the limiting factor.
 - T25Q01 cites S06_001, which was not retrieved.
+
+### Fairness and currency for hybrid_rerank-k5-settlein_v4-gate05
+
+Fairness (nDCG@5 policy − student gap; `results/fairness_metrics.csv`):
+
+| Pair | bm25 | dense | hybrid_rerank |
+|------|:----:|:-----:|:-------------:|
+| T04 | 0.1900 | 0.0761 | 0.0167 |
+| T11 | 0.5209 | 0.6388 | 0.1236 |
+| T18 | 0.1597 | 0.0793 | 0.3733 |
+| T25 | 1.0000 | 0.9239 | 1.0000 |
+| T30 | 0.1637 | 0.0498 | 0.0167 |
+| T39 | 0.0000 | 0.0000 | 0.0000 |
+| Mean | 0.3390 | 0.2947 | 0.2550 |
+
+Mean student-register nDCG@5: bm25 0.5265, dense 0.5449, hybrid_rerank
+0.6427. The gap shrinks on T04, T11 and T30 but widens on T18. At answer
+level the refusal gate refuses T25Q02 (student phrasing) while answering
+T25Q01 (policy phrasing).
+
+Currency evaluation fix: `currency_eval.py` looked for an `is_superseded`
+field in `collection.jsonl`, which does not exist, so every stale-citation
+count was 0. It now also treats passages from sources marked superseded in
+`data/sources_draft.csv` (S18) as stale, and reports `stale_retrieved` and
+whether the answer states "40 hours". Corrected results:
+
+- Main runs (S18 excluded): no stale citations for bm25, dense or
+  hybrid_rerank. The answer to T02Q01 still states 40 hours for dense and
+  hybrid_rerank, because the current passage S03_001 contains the older
+  condition text ("cannot work more than 40 hours a fortnight").
+- Currency stress tests (S18 included): an S18 passage is retrieved in the
+  top 5 for all 12 question runs. It is cited in 2: dense T02Q01
+  (`currency_with_superseded`, 1 of 2 citations) and BM25 T02Q01 with
+  contextual headers (`currency_ctx`, 1 of 3 citations). The 40-hour figure
+  appears in 4 of the 12 stress-test answers.
+- The "current preference rate" named in the README is not computed by
+  `currency_eval.py`.

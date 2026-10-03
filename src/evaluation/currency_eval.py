@@ -54,6 +54,14 @@ def evaluate_currency(config_name: str) -> list[dict]:
                 topics[qid] = r
 
     collection = load_collection_meta()
+    # Superseded status is recorded per source in data/sources_draft.csv;
+    # collection.jsonl has no is_superseded field.
+    from src.retrieval.search import load_superseded_sources
+    superseded_sources = load_superseded_sources()
+
+    def is_stale(pid: str) -> bool:
+        p = collection.get(pid, {})
+        return bool(p.get("is_superseded", False)) or p.get("source_id") in superseded_sources
 
     # Filter to currency-sensitive questions
     currency_gens = [
@@ -71,22 +79,21 @@ def evaluate_currency(config_name: str) -> list[dict]:
         cited_ids = gen.get("cited_ids", [])
 
         # Check if any cited/retrieved passages are superseded
-        stale_cited = 0
-        total_cited = 0
-        for pid in cited_ids:
-            p = collection.get(pid, {})
-            total_cited += 1
-            if p.get("is_superseded", False):
-                stale_cited += 1
+        total_cited = len(cited_ids)
+        stale_cited = sum(1 for pid in cited_ids if is_stale(pid))
+        stale_retrieved = sum(1 for pid in retrieved_ids if is_stale(pid))
 
         stale_rate = stale_cited / total_cited if total_cited > 0 else 0.0
 
         results.append({
             "question_id": gen["question_id"],
             "config": config_name,
+            "method": gen.get("method", ""),
             "total_cited": total_cited,
             "stale_cited": stale_cited,
             "stale_citation_rate": round(stale_rate, 4),
+            "stale_retrieved": stale_retrieved,
+            "states_40_hours": "40 hours" in gen.get("answer", ""),
         })
 
     # Corpus freshness (descriptive, computed once)
