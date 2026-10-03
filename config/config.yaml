@@ -22,6 +22,7 @@ retrieval:
   rerank:                  # used by method hybrid_rerank (exploratory)
     model: BAAI/bge-reranker-v2-m3
     pool_depth: 20         # hybrid RRF candidates passed to the cross-encoder
+    refusal_threshold: 0.05  # app: refuse without generating if top reranker score is below this
   top_k: [1, 3, 5]
   score_threshold: null    # set in Phase 4
 generation:

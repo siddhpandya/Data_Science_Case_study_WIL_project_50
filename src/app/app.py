@@ -1,7 +1,7 @@
 """SettleIN – RAG Chatbot for International Students in Australia.
 
 Interactive Streamlit chatbot with:
-- BM25 and Dense retrieval options
+- Hybrid + rerank (with refusal gate), Dense and BM25 retrieval options
 - Evidence panel showing retrieved passages
 - Source attribution and confidence scoring
 - Responsive chat interface
@@ -16,8 +16,21 @@ REPO_ROOT = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(REPO_ROOT))
 
 from src.retrieval.search import SearchEngine, load_collection
-from src.generation.generate import generate_answer, load_config
+from src.generation.generate import generate_answer, load_config, REFUSAL_STRING
 import csv
+
+RETRIEVAL_LABELS = {
+    "hybrid_rerank": "Hybrid + rerank (recommended)",
+    "dense": "Dense",
+    "bm25": "BM25",
+}
+PROMPT_LABELS = {
+    "settlein_v4": "settlein_v4 (recommended, evaluated)",
+    "settlein_v3": "settlein_v3",
+    "settlein_v1": "settlein_v1",
+    "walert": "walert",
+    "closed_book": "closed_book (no retrieval)",
+}
 
 # ── Page Config ──────────────────────────────────────────────────────────────
 
@@ -88,18 +101,27 @@ def render_sidebar(passages):
 
         retrieval_method = st.selectbox(
             "Retrieval Method",
-            ["dense", "bm25"],
+            list(RETRIEVAL_LABELS),
             index=0,
-            help="Dense = semantic similarity (recommended), BM25 = keyword matching",
+            format_func=RETRIEVAL_LABELS.get,
+            help="Hybrid + rerank = keyword + semantic search with titles/headings, reranked by "
+                 "a cross-encoder; refuses when no passage is relevant (best evaluated). "
+                 "Dense = semantic similarity, BM25 = keyword matching.",
         )
 
-        st.caption("📐 Passage count is **adaptive** — automatically picks relevant passages.")
+        if retrieval_method == "hybrid_rerank":
+            st.caption("📐 Top **5** passages, as evaluated. The first question loads the "
+                       "reranker and can take a minute; later ones ~30 s on CPU.")
+        else:
+            st.caption("📐 Passage count is **adaptive** — automatically picks relevant passages.")
 
         prompt_variant = st.selectbox(
             "Prompt Style",
-            ["settlein_v4", "settlein_v3", "settlein_v1", "walert", "closed_book"],
+            list(PROMPT_LABELS),
             index=0,
-            help="settlein_v4: inline citations (evaluated default), settlein_v3: passage-level citations, closed_book: no retrieval",
+            format_func=PROMPT_LABELS.get,
+            help="settlein_v4: inline citations (the only prompt evaluated on the full test set), "
+                 "settlein_v3: passage-level citations, closed_book: no retrieval",
         )
 
         st.divider()
@@ -220,30 +242,48 @@ def main():
             with st.chat_message("user"):
                 st.markdown(question)
 
-            # Retrieve (adaptive: auto-selects how many passages are relevant)
+            # Retrieve: hybrid_rerank uses the evaluated fixed top 5; the others are
+            # adaptive (auto-select how many passages are relevant)
+            gated = False
             with st.spinner("🔍 Searching…"):
                 if prompt_variant == "closed_book":
                     results = None
                     st.session_state.evidence = []
+                elif retrieval_method == "hybrid_rerank":
+                    results = engine.search(question, method="hybrid_rerank", top_k=5)
+                    st.session_state.evidence = results
+                    threshold = config.get("retrieval", {}).get("rerank", {}).get("refusal_threshold")
+                    top_score = results[0][1] if results else 0.0
+                    gated = threshold is not None and top_score < threshold
                 else:
                     results = engine.adaptive_search(question, method=retrieval_method)
                     st.session_state.evidence = results
 
-            # Generate
-            with st.spinner("💭 Generating answer…"):
-                gen_result = generate_answer(
-                    question=question,
-                    results=results,
-                    variant=prompt_variant,
-                    config=config,
-                )
-                answer = gen_result["answer"]
-                refused = gen_result.get("refused", False)
+            # Generate (skipped when the refusal gate fires)
+            if gated:
+                answer, refused = REFUSAL_STRING, True
+            else:
+                with st.spinner("💭 Generating answer…"):
+                    gen_result = generate_answer(
+                        question=question,
+                        results=results,
+                        variant=prompt_variant,
+                        config=config,
+                    )
+                    answer = gen_result["answer"]
+                    refused = gen_result.get("refused", False)
 
             st.session_state.messages.append({"role": "assistant", "content": answer})
             with st.chat_message("assistant"):
                 st.markdown(answer)
-                if refused:
+                if gated:
+                    st.info(
+                        f"ℹ️ No passage in the knowledge base scored above the relevance "
+                        f"threshold ({threshold}), so SettleIN declined instead of guessing. "
+                        "Check the [official sources](https://immi.homeaffairs.gov.au/) directly.",
+                        icon="💡",
+                    )
+                elif refused:
                     st.info(
                         "ℹ️ The retrieved passages did not contain enough information "
                         "to answer this question. Try rephrasing, or check the "
